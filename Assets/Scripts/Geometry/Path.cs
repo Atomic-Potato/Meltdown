@@ -104,6 +104,45 @@ public class Path{
         }
     }
 
+    public Vector2[] CalculateEvenlySpacedPoints(float spacing, float resolution = 1){
+        List<Vector2> evenlySpacedPoints = new List<Vector2>();
+        evenlySpacedPoints.Add(points[0]);
+        Vector2 previousPoint = points[0];
+        float distSinceLastEvenPoint = 0;
+
+        for(int segment=0; segment < NumSegments; segment++){
+            Vector2 [] pts = GetPointsInSegment(segment);
+
+            //Getting an approximate lenght of the curve / segment
+            float controlNet = Vector2.Distance(pts[0], pts[1]) + Vector2.Distance(pts[1], pts[2]) + Vector2.Distance(pts[2], pts[3]);
+            float curveLength = (controlNet + Vector2.Distance(pts[0], pts[3])) / 2f;
+            //Dividing the curve into even bits
+            int divisions = Mathf.CeilToInt(curveLength * resolution * 10);
+
+            float t=0;
+            while(t<=1){
+                t += 1f / divisions;
+                Vector2 pointOnCurve = Bezier.EvaluateCubic(pts[0], pts[1], pts[2], pts[3], t);
+                distSinceLastEvenPoint += Vector2.Distance(previousPoint, pointOnCurve);
+
+                //If we overshot the spacing then we go back that distance and that point
+                //And if spacing is really small, we could overshoot multiple points
+                //So we use while to keep adding these points
+                while(distSinceLastEvenPoint >= spacing){
+                    float overShootDist = distSinceLastEvenPoint - spacing;
+                    Vector2 newEvenlySpacedPoint = pointOnCurve + (previousPoint - pointOnCurve).normalized * overShootDist;
+                    evenlySpacedPoints.Add(newEvenlySpacedPoint);
+                    distSinceLastEvenPoint = overShootDist;
+                    previousPoint = newEvenlySpacedPoint;
+                }
+
+                previousPoint = pointOnCurve;
+            }            
+        }
+
+        return evenlySpacedPoints.ToArray();
+    }
+
     void AutoSetAffectedControlPoints(int updatedAnchorIndex){
         for(int i = updatedAnchorIndex-3; i < updatedAnchorIndex + 3; i+=3){
             if(i >=0 && i < points.Count)
