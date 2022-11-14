@@ -8,14 +8,20 @@ public class GroundCreator : MonoBehaviour{
     [Range(.05f, 1.5f)]
     [SerializeField] float spacing = 1f;
     [SerializeField] float groundHeight = 5f;
-    [Space]
+    [SerializeField] float tiling = 1f;
     public bool autoUpdate;
+
+    [Space]
     [SerializeField] PathCreator pathCreator;
+    [SerializeField] MeshRenderer meshRenderer;
     [SerializeField] MeshFilter meshFilter;
 
     public void UpdateGround(){
         Vector2[] points = pathCreator.path.CalculateEvenlySpacedPoints(spacing);
         meshFilter.mesh = CreateGroundMesh(points);
+        
+        int textureRepeat = Mathf.RoundToInt(tiling * points.Length * spacing * .05f);
+        meshRenderer.sharedMaterial.mainTextureScale = new Vector2(1, textureRepeat);
     }
 
     /* To Create a mesh we get the evenly spaced points along a curve
@@ -26,6 +32,7 @@ public class GroundCreator : MonoBehaviour{
     */
     Mesh CreateGroundMesh(Vector2[] points){
         Vector3[] verts = new Vector3[points.Length * 2];
+        Vector2[] uvs = new Vector2[verts.Length];
         int[] triangles = new int[2 * (points.Length - 1) * 3];
         int vertIndex = 0;
         int triIndex = 0;
@@ -48,6 +55,11 @@ public class GroundCreator : MonoBehaviour{
             verts[vertIndex] = points[i];
             verts[vertIndex+1] = points[i] + right * groundHeight * .5f;
             
+            //i dont get UVs yet
+            float completionPercent = i / (float)(points.Length - 1);
+            uvs[vertIndex] = new Vector2(0, completionPercent);
+            uvs[vertIndex + 1] = new Vector2(1, completionPercent);
+
             //Adding the triangles
             if(i < points.Length - 1){
                 triangles[triIndex] = vertIndex; 
@@ -67,6 +79,8 @@ public class GroundCreator : MonoBehaviour{
         Mesh mesh = new Mesh();
         mesh.vertices = verts;
         mesh.triangles = triangles;
+        mesh.uv = uvs;
+
         return mesh;
     }
 }
