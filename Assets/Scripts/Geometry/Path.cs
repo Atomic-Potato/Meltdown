@@ -143,6 +143,21 @@ public class Path{
         return evenlySpacedPoints.ToArray();
     }
 
+    public static int GetNearestPoint(Vector2 pos, Vector2[] pts){
+        float leastDistance = float.MaxValue;
+        int distIndex = -1;
+
+        for(int i=0; i < pts.Length; i++){
+            float dist = Mathf.Abs(Vector2.Distance(pos, pts[i])); 
+            if(dist < leastDistance){
+                leastDistance = dist;
+                distIndex = i; 
+            }
+        }
+
+        return distIndex;
+    }
+
     void AutoSetAffectedControlPoints(int updatedAnchorIndex){
         for(int i = updatedAnchorIndex-3; i < updatedAnchorIndex + 3; i+=3){
             if(i >=0 && i < points.Count)
