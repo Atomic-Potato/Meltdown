@@ -17,18 +17,21 @@ public class PlayerController : MonoBehaviour
     [SerializeField] LayerMask groundMask;
     [SerializeField] Vector3 groundBoxSizeAir;
     [SerializeField] Vector3 groundBoxSizeGround;
-    [SerializeField] GameObject targetObject;
+    
     
     
     [Space]
+    [Header("REQUIRED COMPONENTS")]
     [SerializeField] Rigidbody rigidbody;
     [SerializeField] Transform groundBox;
     [SerializeField] GameObject spriteObject;
     [SerializeField] PathCreator pathCreator;
 
-    //Debugging
+    [Space]
+    [Header("DEBUGGING")]
     [SerializeField] bool enableLogging;
-    [SerializeField] bool inGizomsDrawing;
+    [SerializeField] bool inEditorDrawing;
+    [SerializeField] GameObject targetObject;
 
     float speed;
     float boost;
@@ -38,10 +41,13 @@ public class PlayerController : MonoBehaviour
 
     bool isGrounded;
 
-    void Start(){
 
+    int currentEnd;
+
+    void Start(){
         boost = initialBoost;
         speed = boost;
+        rigidbody.velocity = new Vector3(speed, 0f, 0f);
         groundPoints = pathCreator.path.CalculateEvenlySpacedPoints(groundSpacing);
     }
 
@@ -50,21 +56,22 @@ public class PlayerController : MonoBehaviour
 
         LogMessage("Grounded:" + isGrounded);
 
-        if(isGrounded)
+        if(isGrounded){
             isGrounded = GroundCheck(groundBoxSizeGround);
+            MoveAlongGround();
+        }
         else{
             isGrounded = GroundCheck(groundBoxSizeAir);
             if(!rigidbody.useGravity){
                 rigidbody.useGravity = true;
-            }
-            return;
+            }  
+            MoveInAir();
         }
-
-        MoveAlongGround();
     }
 
+
     private void OnDrawGizmos() {
-        if(!inGizomsDrawing)
+        if(!inEditorDrawing)
             return;
             
         GroundCheck(groundBoxSizeAir);
@@ -72,32 +79,41 @@ public class PlayerController : MonoBehaviour
     }
 
     void MoveAlongGround(){
-        if(targetPoint == groundPoints.Length)
+        if(targetPoint == groundPoints.Length - 1){
+            // Let go of the ground ()
             return;
+        }
 
         if(rigidbody.useGravity){
+            transform.position = groundPoints[targetPoint];
             rigidbody.useGravity = false;
             rigidbody.velocity = Vector2.zero;
         }
 
         speed = CalculateSpeed(speed, minSpeed, slowDownRate);
-        direction = GetDirection(targetPoint-1, targetPoint);
-        transform.Translate(direction * speed * Time.deltaTime);
-        //transform.position += (Vector3)direction * speed * Time.deltaTime;
+        direction = GetDirection(targetPoint, targetPoint+1);
+        transform.rotation = RotateInDirection(direction);
+        transform.position += (Vector3)direction * speed * Time.deltaTime;
 
-        spriteObject.transform.rotation = RotateInDirection(direction);
-        
-        if(GetDistanceToPoint(groundPoints[targetPoint]) < 0.0005f)
+        if(transform.position.x > groundPoints[targetPoint].x){
+            SetTargetToNearstFrontPoint();
+            transform.position = groundPoints[targetPoint-1];
             targetPoint++;
+        }
+    }
+
+    void MoveInAir(){
+        speed = CalculateSpeed(rigidbody.velocity.x, minSpeed, slowDownRate);
+        rigidbody.velocity = new Vector3(speed, rigidbody.velocity.y, rigidbody.velocity.z);
     }
 
 
     float CalculateSpeed(float s, float minS, float rate){
         if(s > minS){
             s -= rate;
-            if(s < minS)
-                s = minS;
         }
+        else if(s < minS)
+            s = minS;
         return s;
     }
 
@@ -119,7 +135,10 @@ public class PlayerController : MonoBehaviour
         Collider[] cols = Physics.OverlapBox(groundBox.position, checkSize);
         DrawBox(groundBox.position, checkSize, Color.blue);
         if(cols.Length > 0){
-            targetPoint = Path.GetNearestPoint(transform.position, groundPoints);
+            if(!isGrounded){
+                targetPoint = Path.GetNearestPoint(transform.position, groundPoints) + 1;
+                transform.position = groundPoints[targetPoint];
+            }
             return true;
         }
         return false;
@@ -138,6 +157,11 @@ public class PlayerController : MonoBehaviour
         Vector2 posPrev = transform.position;
         yield return null;
         direction = ((Vector2)transform.position - posPrev).normalized;
+    }
+
+    void SetTargetToNearstFrontPoint(){
+        while(groundPoints[targetPoint].x < transform.position.x && targetPoint < groundPoints.Length)
+            targetPoint++;
     }
 
     #region  LOGGING
