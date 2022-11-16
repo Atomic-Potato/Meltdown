@@ -1,126 +1,231 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
+using System.Collections;
+using UnityEngine.InputSystem;
 
-[ExecuteInEditMode]
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] float initialSpeed;
-    [SerializeField] float minSpeed;
-    [SerializeField] float slowDownRate;
-    [Space]
-    [SerializeField] LayerMask rayCollisionMask;
-    [SerializeField] Transform groundRayLeft;
-    [SerializeField] Transform groundRayRight;
+    #region PUBLIC AND SERIALIZED VARIABLES
+    [SerializeField] float jumpForce = 5f;
+    [SerializeField] float initialBoost = 25f;
+    [SerializeField] float minSpeed = 17f;
+    [Range(0f, 2.5f)]
+    [SerializeField] float slowDownRate = 0.25f;
+    [SerializeField] float groundRayLength;
+    [Tooltip("The higher, the more accurate is the movement")]
+    [SerializeField] float groundSpacing;
 
     [Space]
-    [SerializeField] Transform groundCheckTransform;
-    [SerializeField] Vector2 checkBoxSize;
+    [SerializeField] LayerMask groundMask;
+    [SerializeField] Vector3 groundBoxSizeAir;
+    [SerializeField] Vector3 groundBoxSizeGround;
+    
+    
+    
+    [Space]
+    [Header("REQUIRED COMPONENTS")]
+    [SerializeField] Rigidbody rigidbody;
+    [SerializeField] Transform groundBox;
+    [SerializeField] GameObject spriteObject;
+    [SerializeField] PathCreator pathCreator;
 
     [Space]
-    [SerializeField] Rigidbody2D rigidbody;
+    [Header("DEBUGGING")]
+    [SerializeField] bool enableLogging;
+    [SerializeField] bool inEditorDrawing;
+    [SerializeField] GameObject targetObject;
+    #endregion
 
-    [Space]
-    [SerializeField] bool enableDebugging = true;
+    #region PRIVATE VARIABLES
+    float speed;
+    float boost;
+    int targetPoint;
+    Vector2 direction;
+    Vector2[] groundPoints;
+    Vector3 initialGroundBox;
 
-    float currentSpeed;
-    float gravityScale;
+    //STATES
     bool isGrounded;
 
-    private void Start() {
-        currentSpeed = initialSpeed;
-        gravityScale = rigidbody.gravityScale;
+    //CACHE
+    bool leaveGroundCache;
+    #endregion
+
+
+    void Start(){
+        boost = initialBoost;
+        speed = boost;
+        rigidbody.velocity = new Vector3(speed, 0f, 0f);
+        groundPoints = pathCreator.path.CalculateEvenlySpacedPoints(groundSpacing);
+        initialGroundBox = groundBoxSizeAir;
     }
 
-    private void Update() {
-        GroundCheck();
-        currentSpeed = Mathf.Clamp(currentSpeed, minSpeed, int.MaxValue);
-        Log("Grounded: " + isGrounded);
+    void Update(){
+        if(isGrounded){
+            isGrounded = GroundCheck(groundBoxSizeGround);
+            MoveAlongGround();
+        }
+        else{
+            isGrounded = GroundCheck(groundBoxSizeAir);
+            if(!rigidbody.useGravity){
+                rigidbody.useGravity = true;
+            }  
+            MoveInAir();
+        }
+
+        //Debugging
+        DisplayNextPathPoint();
     }
 
-    private void FixedUpdate() {
-        Move();
 
-        if(!isGrounded)
-            ApplyGravity(gravityScale);
-        else
-            ApplyGravity(0f);
+    void OnDrawGizmos() {
+        if(!inEditorDrawing)
+            return;
+            
+        GroundCheck(groundBoxSizeAir);
+        GroundCheck(groundBoxSizeGround);
     }
 
-
-    private void Move(){
-        currentSpeed -= Time.deltaTime * slowDownRate;
-
-        DrawRay(groundRayLeft.transform.position, Vector3.left * 0.2f, Color.blue);
-        DrawRay(groundRayRight.transform.position, Vector3.right * 0.2f, Color.blue);
-
-        RaycastHit2D leftHit = Physics2D.Raycast(groundRayLeft.transform.position, Vector2.down, 0.2f, rayCollisionMask);
-        RaycastHit2D rightHit = Physics2D.Raycast(groundRayRight.transform.position, Vector2.down, 0.2f, rayCollisionMask);
-        RaycastHit2D hit = leftHit ? leftHit : rightHit;
-
-        if(!isGrounded || !hit){
-            transform.position = new Vector3(transform.position.x + currentSpeed * Time.deltaTime, transform.position.y, transform.position.z);
+    #region MOVEMENT
+    void MoveAlongGround(){
+        if(targetPoint == groundPoints.Length - 1){
+            if(!leaveGroundCache)
+                StartCoroutine(LeaveGround(0.2f));
             return;
         }
 
-        if(hit){
-            float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-            slopeAngle = leftHit ? -slopeAngle : slopeAngle; //when going down slopes
-            Log("Angle: " + slopeAngle);
-            Vector2 direction = new Vector2(currentSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad), currentSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad));
-            direction = direction.normalized;
-            transform.position = new Vector3(transform.position.x + direction.x * currentSpeed * Time.deltaTime, 
-                                            transform.position.y + direction.y * currentSpeed * Time.deltaTime);    
+        if(rigidbody.useGravity){
+            transform.position = groundPoints[targetPoint];
+            rigidbody.useGravity = false;
+            rigidbody.velocity = Vector2.zero;
+        }
+
+        speed = CalculateSpeed(speed, minSpeed, slowDownRate);
+        direction = GetDirection(targetPoint, targetPoint+1);
+        transform.rotation = RotateInDirection(direction);
+        transform.position += (Vector3)direction * speed * Time.deltaTime;
+
+        if(transform.position.x > groundPoints[targetPoint].x){
+            SetTargetToNearstFrontPoint();
+            transform.position = groundPoints[targetPoint-1];
+            targetPoint++;
         }
     }
 
-    private void ApplyGravity(float scale){
-        rigidbody.gravityScale = scale;
-        //Removing any leftover force
-        if(scale == 0f) 
-            rigidbody.velocity = new Vector2(0f, 0f);
+    void MoveInAir(){
+        speed = CalculateSpeed(rigidbody.velocity.x, minSpeed, slowDownRate);
+        rigidbody.velocity = new Vector3(speed, rigidbody.velocity.y, rigidbody.velocity.z);
     }
 
-    private void GroundCheck()
-    {
-        DrawBox(groundCheckTransform.position, checkBoxSize, Color.black);
-        DrawBox(groundCheckTransform.position, checkBoxSize*2, Color.gray);
-        RaycastHit2D hitIn = Physics2D.BoxCast(groundCheckTransform.position, checkBoxSize, 0f, Vector2.zero, 0f, rayCollisionMask);
-        RaycastHit2D hitOut = Physics2D.BoxCast(groundCheckTransform.position, checkBoxSize*2, 0f, Vector2.zero, 0f, rayCollisionMask);
-        if(hitIn) 
-            isGrounded = true;
-        if(!hitOut)
-            isGrounded = false;
+
+    float CalculateSpeed(float s, float minS, float rate){
+        if(s > minS){
+            s -= rate;
+        }
+        else if(s < minS)
+            s = minS;
+        return s;
     }
 
-    #region TOOLS
-    private void DrawRay(Vector3 origin, Vector3 direction, Color color)
-    {
-        if(Debugger.enableGlobalDebugging && enableDebugging){
-            Debug.DrawRay(origin, direction, color);
+    Vector2 GetDirection(int ptCurr, int ptNext){
+        return (groundPoints[ptNext] - groundPoints[ptCurr]).normalized; 
+    }
+
+    Quaternion RotateInDirection(Vector2 dir){
+        float rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        return Quaternion.Euler( 0f, 0f, rotation);
+    }
+
+    void SetTargetToNearstFrontPoint(){
+        while(groundPoints[targetPoint].x < transform.position.x && targetPoint < groundPoints.Length)
+            targetPoint++;
+    }
+    #endregion
+
+    #region JUMPING
+    public void OnJump(InputAction.CallbackContext context){
+        if(context.started){    
+            if(!isGrounded)
+                return;
+            if(!leaveGroundCache)
+                StartCoroutine(LeaveGround(0.01f));
+            LogMessage("Jumped");
+            Jump();
         }
     }
 
-    private void Log(string message)
-    {
-        if(Debugger.enableGlobalDebugging && enableDebugging){
-            Debug.Log(message);
-        }
+    void Jump(){
+        rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
+    #endregion
 
+    #region UNIVERSAL
+    IEnumerator LeaveGround(float resetTime){
+        leaveGroundCache = true;
+
+        isGrounded = false;
+        rigidbody.useGravity = true;
+        groundBoxSizeAir = Vector3.zero;
+        groundBox.position = new Vector3( groundBox.position.x,
+                                          groundBox.position.y + 1,
+                                          groundBox.position.z );
+
+        Jump();
+        yield return new WaitForSeconds(resetTime);
+        groundBoxSizeAir = initialGroundBox;
+        groundBox.position = new Vector3( groundBox.position.x,
+                                          groundBox.position.y - 1,
+                                          groundBox.position.z );
+
+
+        leaveGroundCache = false;
+    }
+    #endregion
+
+    #region SYSTEMS
+    bool GroundCheck(Vector3 checkSize){
+        Collider[] cols = Physics.OverlapBox(groundBox.position, checkSize);
+        DrawBox(groundBox.position, checkSize, Color.blue);
+        if(cols.Length > 0){
+            if(!isGrounded){
+                targetPoint = Path.GetNearestPoint(transform.position, groundPoints) + 1;
+                transform.position = groundPoints[targetPoint];
+            }
+            return true;
+        }
+        return false;
+
+    }
+    #endregion
+
+    #region  LOGGING
     private void DrawBox(Vector2 position, Vector2 size, Color color)
     {
-        if(Debugger.enableGlobalDebugging && enableDebugging){
+        if(enableLogging){
             //TOP
-            Debug.DrawRay(new Vector3(position.x - size.x/2f, position.y + size.y/2f, 0f), new Vector3(size.x, 0f, 0f), color);
+            Debug.DrawRay(new Vector3(position.x - size.x, position.y + size.y, 0f), new Vector3(size.x*2f, 0f, 0f), color);
             //BOTTOM
-            Debug.DrawRay(new Vector3(position.x - size.x/2f, position.y - size.y/2f, 0f), new Vector3(size.x, 0f, 0f), color);
+            Debug.DrawRay(new Vector3(position.x - size.x, position.y - size.y, 0f), new Vector3(size.x*2f, 0f, 0f), color);
             //LEFT
-            Debug.DrawRay(new Vector3(position.x - size.x/2f, position.y - size.y/2f, 0f), new Vector3(0f, size.y, 0f), color);
+            Debug.DrawRay(new Vector3(position.x - size.x, position.y - size.y, 0f), new Vector3(0f, size.y*2f, 0f), color);
             //RIGHT
-            Debug.DrawRay(new Vector3(position.x + size.x/2f, position.y - size.y/2f, 0f), new Vector3(0f, size.y, 0f), color);
+            Debug.DrawRay(new Vector3(position.x + size.x, position.y - size.y, 0f), new Vector3(0f, size.y*2f, 0f), color);
         }
     }
 
+    void LogRay(Vector3 start, Vector3 direction, Color color){
+        if(enableLogging)
+            Debug.DrawRay(start, direction, color);
+    }
+
+    void LogMessage(string message){
+        if(enableLogging)
+            Debug.Log(message);
+    }
+
+    void DisplayNextPathPoint(){
+        if(enableLogging && targetObject != null)
+            targetObject.transform.position = groundPoints[targetPoint];
+    }
     #endregion
 }
