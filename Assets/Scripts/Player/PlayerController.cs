@@ -11,9 +11,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float minSpeed = 17f;
     [Range(0f, 2.5f)]
     [SerializeField] float slowDownRate = 0.25f;
-    [SerializeField] float groundRayLength;
     [Tooltip("The higher, the more accurate is the movement")]
-    [SerializeField] float groundSpacing;
+    public float groundSpacing;
 
     [Space]
     [SerializeField] LayerMask groundMask;
@@ -27,7 +26,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Rigidbody rigidbody;
     [SerializeField] Transform groundBox;
     [SerializeField] GameObject spriteObject;
-    [SerializeField] PathCreator pathCreator;
+    public PathCreator mainGround;
 
     [Space]
     [Header("DEBUGGING")]
@@ -40,6 +39,8 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public bool isJustLanded;
     [HideInInspector] public bool isGrounded;
 
+    // Other hidden
+    [HideInInspector] public Vector2[] groundPoints;
     #endregion
 
     #region PRIVATE VARIABLES
@@ -47,7 +48,6 @@ public class PlayerController : MonoBehaviour
     float boost;
     int targetPoint;
     Vector2 direction;
-    Vector2[] groundPoints;
     Vector3 initialGroundBox;
 
     //CACHE
@@ -59,7 +59,7 @@ public class PlayerController : MonoBehaviour
         boost = initialBoost;
         speed = boost;
         rigidbody.velocity = new Vector3(speed, 0f, 0f);
-        groundPoints = pathCreator.path.CalculateEvenlySpacedPoints(groundSpacing);
+        groundPoints = mainGround.path.CalculateEvenlySpacedPoints(groundSpacing);
         initialGroundBox = groundBoxSizeAir;
     }
 
@@ -92,6 +92,7 @@ public class PlayerController : MonoBehaviour
 
     #region MOVEMENT
     void MoveAlongGround(){
+        LogMessage("Target point: " + targetPoint + " Total: " + groundPoints.Length);
         if(targetPoint == groundPoints.Length - 1){
             if(!leaveGroundCache)
                 StartCoroutine(LeaveGround(0.2f));
@@ -140,10 +141,6 @@ public class PlayerController : MonoBehaviour
         return Quaternion.Euler( 0f, 0f, rotation);
     }
 
-    void SetTargetToNearstFrontPoint(){
-        while(groundPoints[targetPoint].x < transform.position.x && targetPoint < groundPoints.Length)
-            targetPoint++;
-    }
     #endregion
 
     #region JUMPING
@@ -182,6 +179,11 @@ public class PlayerController : MonoBehaviour
 
 
         leaveGroundCache = false;
+    }
+
+    public void SetTargetToNearstFrontPoint(){
+        while(groundPoints[targetPoint].x < transform.position.x && targetPoint < groundPoints.Length)
+            targetPoint++;
     }
 
     IEnumerator PositiveSwitch(Action<bool> key, WaitForSeconds time = null){

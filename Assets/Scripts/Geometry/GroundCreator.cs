@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(PathCreator))]
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(MeshFilter))]
+
 public class GroundCreator : MonoBehaviour{
 
     [Range(.05f, 1.5f)]
@@ -15,6 +16,9 @@ public class GroundCreator : MonoBehaviour{
     [SerializeField] PathCreator pathCreator;
     [SerializeField] MeshRenderer meshRenderer;
     [SerializeField] MeshFilter meshFilter;
+
+    
+    MeshCollider meshCollider;
 
     public void UpdateGround(){
         Vector2[] points = pathCreator.path.CalculateEvenlySpacedPoints(spacing);
@@ -82,5 +86,14 @@ public class GroundCreator : MonoBehaviour{
         mesh.uv = uvs;
 
         return mesh;
+    }
+
+    public void UpdateCollision(){
+        if(meshCollider == null){
+            meshCollider = gameObject.AddComponent<MeshCollider>();
+        }
+        else{
+            meshCollider = gameObject.AddComponent<MeshCollider>();
+        }
     }
 }

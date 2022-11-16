@@ -60,6 +60,10 @@ public class Path{
             AutoSetAffectedControlPoints(points.Count - 1);
     }
 
+    public void AddPoint(Vector2 pointPos){
+        points.Add(pointPos);
+    }
+
     public void RemoveFirstSegment(){
         if(NumSegments > 2)
             points.RemoveRange(0,3);
