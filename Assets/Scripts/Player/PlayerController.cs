@@ -1,14 +1,16 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] float initialBoost;
-    [SerializeField] float minSpeed;
+    #region PUBLIC AND SERIALIZED VARIABLES
+    [SerializeField] float jumpForce = 5f;
+    [SerializeField] float initialBoost = 25f;
+    [SerializeField] float minSpeed = 17f;
     [Range(0f, 2.5f)]
-    [SerializeField] float slowDownRate;
+    [SerializeField] float slowDownRate = 0.25f;
     [SerializeField] float groundRayLength;
     [Tooltip("The higher, the more accurate is the movement")]
     [SerializeField] float groundSpacing;
@@ -32,30 +34,33 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool enableLogging;
     [SerializeField] bool inEditorDrawing;
     [SerializeField] GameObject targetObject;
+    #endregion
 
+    #region PRIVATE VARIABLES
     float speed;
     float boost;
     int targetPoint;
     Vector2 direction;
     Vector2[] groundPoints;
+    Vector3 initialGroundBox;
 
+    //STATES
     bool isGrounded;
 
+    //CACHE
+    bool leaveGroundCache;
+    #endregion
 
-    int currentEnd;
 
     void Start(){
         boost = initialBoost;
         speed = boost;
         rigidbody.velocity = new Vector3(speed, 0f, 0f);
         groundPoints = pathCreator.path.CalculateEvenlySpacedPoints(groundSpacing);
+        initialGroundBox = groundBoxSizeAir;
     }
 
     void Update(){
-        targetObject.transform.position = groundPoints[targetPoint];
-
-        LogMessage("Grounded:" + isGrounded);
-
         if(isGrounded){
             isGrounded = GroundCheck(groundBoxSizeGround);
             MoveAlongGround();
@@ -67,10 +72,13 @@ public class PlayerController : MonoBehaviour
             }  
             MoveInAir();
         }
+
+        //Debugging
+        DisplayNextPathPoint();
     }
 
 
-    private void OnDrawGizmos() {
+    void OnDrawGizmos() {
         if(!inEditorDrawing)
             return;
             
@@ -78,9 +86,11 @@ public class PlayerController : MonoBehaviour
         GroundCheck(groundBoxSizeGround);
     }
 
+    #region MOVEMENT
     void MoveAlongGround(){
         if(targetPoint == groundPoints.Length - 1){
-            // Let go of the ground ()
+            if(!leaveGroundCache)
+                StartCoroutine(LeaveGround(0.2f));
             return;
         }
 
@@ -121,16 +131,58 @@ public class PlayerController : MonoBehaviour
         return (groundPoints[ptNext] - groundPoints[ptCurr]).normalized; 
     }
 
-    float GetDistanceToPoint(Vector2 target){
-        return Mathf.Abs(Vector2.Distance((Vector2)transform.position,target));
-    }
-
     Quaternion RotateInDirection(Vector2 dir){
         float rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         return Quaternion.Euler( 0f, 0f, rotation);
     }
 
+    void SetTargetToNearstFrontPoint(){
+        while(groundPoints[targetPoint].x < transform.position.x && targetPoint < groundPoints.Length)
+            targetPoint++;
+    }
+    #endregion
 
+    #region JUMPING
+    public void OnJump(InputAction.CallbackContext context){
+        if(context.started){    
+            if(!isGrounded)
+                return;
+            if(!leaveGroundCache)
+                StartCoroutine(LeaveGround(0.01f));
+            LogMessage("Jumped");
+            Jump();
+        }
+    }
+
+    void Jump(){
+        rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+    }
+    #endregion
+
+    #region UNIVERSAL
+    IEnumerator LeaveGround(float resetTime){
+        leaveGroundCache = true;
+
+        isGrounded = false;
+        rigidbody.useGravity = true;
+        groundBoxSizeAir = Vector3.zero;
+        groundBox.position = new Vector3( groundBox.position.x,
+                                          groundBox.position.y + 1,
+                                          groundBox.position.z );
+
+        Jump();
+        yield return new WaitForSeconds(resetTime);
+        groundBoxSizeAir = initialGroundBox;
+        groundBox.position = new Vector3( groundBox.position.x,
+                                          groundBox.position.y - 1,
+                                          groundBox.position.z );
+
+
+        leaveGroundCache = false;
+    }
+    #endregion
+
+    #region SYSTEMS
     bool GroundCheck(Vector3 checkSize){
         Collider[] cols = Physics.OverlapBox(groundBox.position, checkSize);
         DrawBox(groundBox.position, checkSize, Color.blue);
@@ -142,27 +194,9 @@ public class PlayerController : MonoBehaviour
             return true;
         }
         return false;
-        /*
-        bool hit = Physics.Raycast(groundRay.position, Vector3.back * groundRayLength, groundMask);
-        LogRay(groundRay.position, Vector3.back * groundRayLength, Color.blue);
-        if(hit){
-            LogMessage("Ground hit");
-            return true;
-        }
-        return false;
-        */
-    }
 
-    IEnumerator GetDirection(){
-        Vector2 posPrev = transform.position;
-        yield return null;
-        direction = ((Vector2)transform.position - posPrev).normalized;
     }
-
-    void SetTargetToNearstFrontPoint(){
-        while(groundPoints[targetPoint].x < transform.position.x && targetPoint < groundPoints.Length)
-            targetPoint++;
-    }
+    #endregion
 
     #region  LOGGING
     private void DrawBox(Vector2 position, Vector2 size, Color color)
@@ -187,6 +221,11 @@ public class PlayerController : MonoBehaviour
     void LogMessage(string message){
         if(enableLogging)
             Debug.Log(message);
+    }
+
+    void DisplayNextPathPoint(){
+        if(enableLogging && targetObject != null)
+            targetObject.transform.position = groundPoints[targetPoint];
     }
     #endregion
 }
