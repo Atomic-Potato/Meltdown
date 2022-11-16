@@ -34,6 +34,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool enableLogging;
     [SerializeField] bool inEditorDrawing;
     [SerializeField] GameObject targetObject;
+
+    // STATES
+    [HideInInspector] public bool isJustJumped;
+    [HideInInspector] public bool isJustLanded;
+    [HideInInspector] public bool isGrounded;
+
     #endregion
 
     #region PRIVATE VARIABLES
@@ -44,14 +50,11 @@ public class PlayerController : MonoBehaviour
     Vector2[] groundPoints;
     Vector3 initialGroundBox;
 
-    //STATES
-    bool isGrounded;
-
     //CACHE
     bool leaveGroundCache;
     #endregion
 
-
+    #region EXECUTION
     void Start(){
         boost = initialBoost;
         speed = boost;
@@ -85,6 +88,7 @@ public class PlayerController : MonoBehaviour
         GroundCheck(groundBoxSizeAir);
         GroundCheck(groundBoxSizeGround);
     }
+    #endregion
 
     #region MOVEMENT
     void MoveAlongGround(){
@@ -149,13 +153,13 @@ public class PlayerController : MonoBehaviour
                 return;
             if(!leaveGroundCache)
                 StartCoroutine(LeaveGround(0.01f));
-            LogMessage("Jumped");
             Jump();
         }
     }
 
     void Jump(){
         rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        StartCoroutine(PositiveSwitch(_ => isJustJumped = _));
     }
     #endregion
 
@@ -170,7 +174,6 @@ public class PlayerController : MonoBehaviour
                                           groundBox.position.y + 1,
                                           groundBox.position.z );
 
-        Jump();
         yield return new WaitForSeconds(resetTime);
         groundBoxSizeAir = initialGroundBox;
         groundBox.position = new Vector3( groundBox.position.x,
@@ -180,6 +183,19 @@ public class PlayerController : MonoBehaviour
 
         leaveGroundCache = false;
     }
+
+    IEnumerator PositiveSwitch(Action<bool> key, WaitForSeconds time = null){
+        key(true);
+        yield return time;
+        key(false);
+    }
+    
+    IEnumerator NegativeSwitch(Action<bool> key, WaitForSeconds time = null){
+        key(false);
+        yield return time;
+        key(true);
+    }
+
     #endregion
 
     #region SYSTEMS
@@ -188,8 +204,11 @@ public class PlayerController : MonoBehaviour
         DrawBox(groundBox.position, checkSize, Color.blue);
         if(cols.Length > 0){
             if(!isGrounded){
+                //Set the ground target point
                 targetPoint = Path.GetNearestPoint(transform.position, groundPoints) + 1;
                 transform.position = groundPoints[targetPoint];
+                //State bool
+                StartCoroutine(PositiveSwitch(_ => isJustLanded = _));
             }
             return true;
         }
