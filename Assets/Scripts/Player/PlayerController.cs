@@ -1,8 +1,9 @@
 using System;
-using UnityEngine;
 using System.Collections;
-using UnityEngine.InputSystem;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
@@ -26,6 +27,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Transform groundBox;
     [SerializeField] GameObject spriteObject;
     public PathCreator mainGround;
+    [SerializeField] GameObject mainGroundObject;
+    [SerializeField] ProceduralGeneration groundGenerator;
 
     [Space]
     [Header("DEBUGGING")]
@@ -41,14 +44,17 @@ public class PlayerController : MonoBehaviour
 
     // Other hidden
     [HideInInspector] public Vector2[] groundPoints;
+    [HideInInspector] public int targetPoint;
+    [HideInInspector] public Queue<GameObject> sectionsQueue = new Queue<GameObject>();
     #endregion
 
     #region PRIVATE VARIABLES
     float speed;
     float boost;
-    int targetPoint;
     Vector2 direction;
     Vector3 initialGroundBox;
+    GameObject oldGroundPiece;
+
 
     //CACHE
     bool leaveGroundCache;
@@ -60,6 +66,7 @@ public class PlayerController : MonoBehaviour
         speed = boost;
         rigidbody.velocity = new Vector3(speed, 0f, 0f);
         groundPoints = mainGround.path.CalculateEvenlySpacedPoints(groundSpacing);
+        sectionsQueue.Enqueue(mainGroundObject);
     }
 
     void Update(){
@@ -93,8 +100,12 @@ public class PlayerController : MonoBehaviour
 
     #region MOVEMENT
     void MoveAlongGround(){
-        if(CheckAndLeaveGround())
+        if(targetPoint >= groundPoints.Length-1){
+            if(!leaveGroundCache)
+                StartCoroutine(LeaveGround(0.2f));
+            UpdateGroundPoints();
             return;
+        }
 
         if(rigidbody.useGravity){
             transform.position = groundPoints[targetPoint];
@@ -107,9 +118,9 @@ public class PlayerController : MonoBehaviour
         transform.rotation = RotateInDirection(direction);
         transform.position += (Vector3)direction * speed * Time.deltaTime;
 
-        if(!CheckAndLeaveGround() && transform.position.x > groundPoints[targetPoint].x){
+        if(targetPoint < groundPoints.Length-1 && transform.position.x > groundPoints[targetPoint].x){
             SetTargetToNearstFrontPoint();
-            if(!CheckAndLeaveGround()){
+            if(targetPoint-1 < groundPoints.Length){
                 transform.position = groundPoints[targetPoint-1];
                 targetPoint++;
             }
@@ -178,17 +189,18 @@ public class PlayerController : MonoBehaviour
         leaveGroundCache = false;
     }
 
-    bool CheckAndLeaveGround(){
-        if(targetPoint >= groundPoints.Length){
-            if(!leaveGroundCache)
-                StartCoroutine(LeaveGround(0.2f));
-            return true;
-        }
-        return false;
+
+    void UpdateGroundPoints(){
+        if(oldGroundPiece != null)
+            oldGroundPiece.SetActive(false);
+        oldGroundPiece = sectionsQueue.Dequeue();
+        
+        mainGroundObject = sectionsQueue.Dequeue();
+        groundPoints = mainGroundObject.GetComponent<PathCreator>().path.CalculateEvenlySpacedPoints(groundSpacing); 
+        targetPoint = 0;
     }
 
     public void SetTargetToNearstFrontPoint(){
-        Debug.Log("Tagret : " + targetPoint + "  //// Length : " + groundPoints.Length);
         while(targetPoint < groundPoints.Length && groundPoints[targetPoint].x < transform.position.x)
             targetPoint++;
     }
@@ -225,6 +237,8 @@ public class PlayerController : MonoBehaviour
         }
         return false;
     }
+
+    
     #endregion
 
     #region  LOGGING

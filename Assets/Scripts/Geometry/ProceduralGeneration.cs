@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,11 +13,13 @@ public class ProceduralGeneration : MonoBehaviour
 
     [Header("REQUIRED COMPONENTS")]
     [SerializeField] PlayerController playerController;
-    [SerializeField] GroundCreator creator;
-    
+
     const int Chasm = -1;
     const int Ground = 1;
     int[] probabilityArray = new int[10];
+
+    // CACHE
+    bool leaveGroundCache;
 
     void Awake() {
         //Filling the probability array
@@ -32,58 +33,41 @@ public class ProceduralGeneration : MonoBehaviour
 
     void Update()
     {
-        if(GetDistanceToLastAnchor() < distanceToAddSection){
+        if(playerController.sectionsQueue.Count < 3){
+            Debug.Log("Add section");
             AddSection(Ground);
         }
-        if(GetDistanceToFirstAnchor() > distanceToRemoveAnchor){
-            playerController.mainGround.path.RemoveFirstSegment();
-            creator.UpdateGround();
-        }
     }
-
     void AddSection(int type){
         if(type == Chasm){
             int sectionNum = Random.Range(0, chasms.Length);
             if(sectionNum % 2 != 0) //since theres always 2 parts of each chasm
                 sectionNum--;
             
-            //Add a chasm
+            //Add a chasm   
         }
         else{
             //Getting the section
-            int sectionNum = Random.Range(0, groundSections.Length);
-            Path section = groundSections[sectionNum].GetComponent<PathCreator>().path;
+            int sectionNum;
+            do{
+                sectionNum = Random.Range(0, groundSections.Length);
+            }while(playerController.sectionsQueue.Contains(groundSections[sectionNum]));
+            groundSections[sectionNum].SetActive(true);
+            playerController.sectionsQueue.Enqueue(groundSections[sectionNum]);
+            Path sectionPath = groundSections[sectionNum].GetComponent<PathCreator>().path;
             
             //Calculating the offset of each point
             Vector2 lastPoint = playerController.mainGround.path[playerController.mainGround.path.NumPoints-1];
-            float distX = Mathf.Abs(section[0].x - lastPoint.x);
-            float distY = Mathf.Abs(section[0].y - lastPoint.y);
+            Vector2 moveDistance = new Vector2(lastPoint.x - sectionPath[0].x, lastPoint.y - sectionPath[0].y);
 
-            //Moving points and adding them
-            for(int i=0; i < section.NumPoints; i++){
-                if(i%3 != 0)
+            //Moving the section points to the current location
+            for(int i=0; i < sectionPath.NumPoints; i++){
+                if(sectionPath.AutoSetControlPoints && i % 3 != 0)
                     continue;
-                Vector2 newPoint = new Vector2(0f, 0f);
-                newPoint.x = section[i].x < lastPoint.x ? section[i].x + distX : section[i].x - distX;
-                newPoint.y = section[i].y < lastPoint.y ? section[i].y + distY : section[i].y - distY;
-
-
+                sectionPath.CustomMovePoint(i, sectionPath[i] + moveDistance); 
             }
-                Vector2 testPoint = new Vector2(Random.Range(lastPoint.x + 15f, lastPoint.x + 25f),
-                                                Random.Range(lastPoint.y, lastPoint.y - 15f));
-                playerController.mainGround.path.AddSegment(testPoint);
-
-            //Cleaning up
-            creator.UpdateGround();
-            playerController.groundPoints = playerController.mainGround.path.CalculateEvenlySpacedPoints(playerController.groundSpacing);
-            playerController.SetTargetToNearstFrontPoint();
+            // Cleaning up
+            groundSections[sectionNum].GetComponent<GroundCreator>().UpdateGround();
         }
-    }
-
-    float GetDistanceToLastAnchor(){
-        return Vector2.Distance(playerController.transform.position, playerController.mainGround.path[playerController.mainGround.path.NumPoints-1]);
-    }
-    float GetDistanceToFirstAnchor(){
-        return Vector2.Distance(playerController.transform.position, playerController.mainGround.path[0]);
     }
 }
