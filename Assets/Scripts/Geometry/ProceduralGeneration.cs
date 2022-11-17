@@ -21,8 +21,6 @@ public class ProceduralGeneration : MonoBehaviour
     int[] probabilityArray = new int[10];
 
     void Awake() {
-        creator.UpdateCollision();
-
         //Filling the probability array
         for(int i=0; i < 10; i++){
             if(i < groundGenerationBias)
@@ -76,7 +74,6 @@ public class ProceduralGeneration : MonoBehaviour
                 playerController.mainGround.path.AddSegment(testPoint);
 
             //Cleaning up
-            creator.UpdateCollision();
             creator.UpdateGround();
             playerController.groundPoints = playerController.mainGround.path.CalculateEvenlySpacedPoints(playerController.groundSpacing);
             playerController.SetTargetToNearstFrontPoint();

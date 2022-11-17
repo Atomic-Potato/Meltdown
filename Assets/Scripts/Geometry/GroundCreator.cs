@@ -17,9 +17,6 @@ public class GroundCreator : MonoBehaviour{
     [SerializeField] MeshRenderer meshRenderer;
     [SerializeField] MeshFilter meshFilter;
 
-    
-    MeshCollider meshCollider;
-
     public void UpdateGround(){
         Vector2[] points = pathCreator.path.CalculateEvenlySpacedPoints(spacing);
         meshFilter.mesh = CreateGroundMesh(points);
@@ -86,14 +83,5 @@ public class GroundCreator : MonoBehaviour{
         mesh.uv = uvs;
 
         return mesh;
-    }
-
-    public void UpdateCollision(){
-        if(meshCollider == null){
-            meshCollider = gameObject.AddComponent<MeshCollider>();
-        }
-        else{
-            meshCollider = gameObject.AddComponent<MeshCollider>();
-        }
     }
 }
