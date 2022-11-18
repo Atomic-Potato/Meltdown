@@ -46,15 +46,19 @@ public class GroundCreator : MonoBehaviour{
             if(i < points.Length - 1)
                 forward += points[i+1] - points[i];
             if(i > 0)
+            {
                 forward += points[i] - points[i-1];
+            }
             forward.Normalize();
 
             //Adding vertecies
             //Left prependicular forward(-y, x), but we want it to be on the point
             //Right prependicular forward(y, -x)
             Vector2 right = new Vector2(forward.y, -forward.x);
-            verts[vertIndex] = points[i];
-            verts[vertIndex+1] = points[i] + right * groundHeight * .5f;
+
+            // In case we're at the last vertex, we extend its length because of a gap that sometimes happen
+            verts[vertIndex] = i != points.Length - 1 ? points[i]  : points[i] +  new Vector2(1f, Mathf.Sign(forward.y) * 0.1f);
+            verts[vertIndex+1] = i != points.Length - 1 ? points[i] + right * groundHeight * .5f : points[i] + right * groundHeight * .5f +  new Vector2(15f, Mathf.Sign(forward.y) * 0.25f);
             
             //i dont get UVs yet
             float completionPercent = i / (float)(points.Length - 1);

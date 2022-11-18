@@ -237,7 +237,6 @@ public class PlayerController : MonoBehaviour
         for(int i=0; i < mainGroundObject.GetComponent<PathCreator>().path.NumSegments; i++){
             Vector2[] points = mainGroundObject.GetComponent<PathCreator>().path.GetPointsInSegment(i);
             float dist = HandleUtility.DistancePointBezier(transform.position, points[0], points[3], points[1], points[2]);
-            LogMessage("Distance: "  + dist);
             if(dist <= distanceToGrounded){
                 if(!isGrounded){
                     //Set the ground target point

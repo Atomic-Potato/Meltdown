@@ -9,8 +9,12 @@ public class ProceduralGeneration : MonoBehaviour
     [Tooltip("ALWAYS have the end of the chasm right after the start in the array")]
     [SerializeField] GameObject[] chasms; 
     
+    [Space]
     [Header("REQUIRED COMPONENTS")]
     [SerializeField] PlayerController playerController;
+    
+    [Space]
+    [Header("DEBUGGING")]
 
     public static int Chasm = -1;
     public static int Ground = 1;
@@ -62,7 +66,19 @@ public class ProceduralGeneration : MonoBehaviour
             for(int i=0; i < sectionPath.NumPoints; i++){
                 if(sectionPath.AutoSetControlPoints && i % 3 != 0)
                     continue;
+
+                if(i == 1){
+                    Path currentPath = currentGround.GetComponent<PathCreator>().path;
+                    Vector2 handleMoveDist = new Vector2(   currentPath[currentPath.NumPoints - 1].x - currentPath[currentPath.NumPoints-2].x, 
+                                                            currentPath[currentPath.NumPoints - 1].y - currentPath[currentPath.NumPoints-2].y   );
+                    sectionPath.CustomMovePoint(i, currentPath[currentPath.NumPoints-1] + handleMoveDist); 
+
+                    Debug.Log("Ayo wtf i said just once");
+                    continue;
+                }
+
                 sectionPath.CustomMovePoint(i, sectionPath[i] + moveDistance); 
+
             }
             // Cleaning up
             staticGroundSections[sectionNum].GetComponent<GroundCreator>().UpdateGround();
