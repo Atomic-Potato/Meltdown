@@ -26,8 +26,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Rigidbody rigidbody;
     [SerializeField] Transform groundBox;
     [SerializeField] GameObject spriteObject;
-    public PathCreator mainGround;
+    //Ground generation
     [SerializeField] GameObject mainGroundObject;
+    GameObject[] spawnedGroundSections = new GameObject[3];
+
     [SerializeField] ProceduralGeneration groundGenerator;
 
     [Space]
@@ -45,7 +47,6 @@ public class PlayerController : MonoBehaviour
     // Other hidden
     [HideInInspector] public Vector2[] groundPoints;
     [HideInInspector] public int targetPoint;
-    [HideInInspector] public Queue<GameObject> sectionsQueue = new Queue<GameObject>();
     #endregion
 
     #region PRIVATE VARIABLES
@@ -53,7 +54,6 @@ public class PlayerController : MonoBehaviour
     float boost;
     Vector2 direction;
     Vector3 initialGroundBox;
-    GameObject oldGroundPiece;
 
 
     //CACHE
@@ -65,8 +65,12 @@ public class PlayerController : MonoBehaviour
         boost = initialBoost;
         speed = boost;
         rigidbody.velocity = new Vector3(speed, 0f, 0f);
-        groundPoints = mainGround.path.CalculateEvenlySpacedPoints(groundSpacing);
-        sectionsQueue.Enqueue(mainGroundObject);
+
+        groundPoints = mainGroundObject.GetComponent<PathCreator>().path.CalculateEvenlySpacedPoints(groundSpacing);
+
+        spawnedGroundSections[0] = null;
+        spawnedGroundSections[1] = mainGroundObject;
+        spawnedGroundSections[2] = ProceduralGeneration.AddSection(ProceduralGeneration.Ground, mainGroundObject, spawnedGroundSections);
     }
 
     void Update(){
@@ -101,10 +105,10 @@ public class PlayerController : MonoBehaviour
     #region MOVEMENT
     void MoveAlongGround(){
         if(targetPoint >= groundPoints.Length-1){
+            /*
             if(!leaveGroundCache)
-                StartCoroutine(LeaveGround(0.2f));
+                StartCoroutine(LeaveGround(0.2f));*/
             UpdateGroundPoints();
-            return;
         }
 
         if(rigidbody.useGravity){
@@ -161,7 +165,7 @@ public class PlayerController : MonoBehaviour
             if(!isGrounded)
                 return;
             if(!leaveGroundCache)
-                StartCoroutine(LeaveGround(0.01f));
+                StartCoroutine(LeaveGround(0.25f));
             Jump();
         }
     }
@@ -191,13 +195,16 @@ public class PlayerController : MonoBehaviour
 
 
     void UpdateGroundPoints(){
-        if(oldGroundPiece != null)
-            oldGroundPiece.SetActive(false);
-        oldGroundPiece = sectionsQueue.Dequeue();
+        if(spawnedGroundSections[0] != null)
+            spawnedGroundSections[0].SetActive(false);
+        spawnedGroundSections[0] = spawnedGroundSections[1];
         
-        mainGroundObject = sectionsQueue.Dequeue();
+        mainGroundObject = spawnedGroundSections[2];
+        spawnedGroundSections[1] = spawnedGroundSections[2];
         groundPoints = mainGroundObject.GetComponent<PathCreator>().path.CalculateEvenlySpacedPoints(groundSpacing); 
         targetPoint = 0;
+
+        spawnedGroundSections[2] = ProceduralGeneration.AddSection(ProceduralGeneration.Ground, mainGroundObject, spawnedGroundSections);
     }
 
     public void SetTargetToNearstFrontPoint(){
@@ -221,16 +228,17 @@ public class PlayerController : MonoBehaviour
 
     #region SYSTEMS
     bool GroundCheck(){
-        for(int i=0; i < mainGround.path.NumSegments; i++){
-            Vector2[] points = mainGround.path.GetPointsInSegment(i);
+        for(int i=0; i < mainGroundObject.GetComponent<PathCreator>().path.NumSegments; i++){
+            Vector2[] points = mainGroundObject.GetComponent<PathCreator>().path.GetPointsInSegment(i);
             float dist = HandleUtility.DistancePointBezier(transform.position, points[0], points[3], points[1], points[2]);
+            LogMessage("Distance: "  + dist);
             if(dist <= distanceToGrounded){
                 if(!isGrounded){
                     //Set the ground target point
                     targetPoint = Path.GetNearestPoint(transform.position, groundPoints) + 1;
                     transform.position = groundPoints[targetPoint];
                     //State bool
-                    StartCoroutine(PositiveSwitch(_ => isJustLanded = _));
+                    StartCoroutine(PositiveSwitch(_ => isJustLanded = _));  
                 }
                 return true;
             }

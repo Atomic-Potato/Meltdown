@@ -1,22 +1,24 @@
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ProceduralGeneration : MonoBehaviour
 {
-    [SerializeField] float distanceToAddSection = 45f;
-    [SerializeField] float distanceToRemoveAnchor = 100f;
     [Range(0, 10)] [Tooltip("The probability that a ground section will spawn")]
     [SerializeField] int groundGenerationBias = 7;
     [SerializeField] GameObject[] groundSections;
     [Tooltip("ALWAYS have the end of the chasm right after the start in the array")]
     [SerializeField] GameObject[] chasms; 
-
+    
     [Header("REQUIRED COMPONENTS")]
     [SerializeField] PlayerController playerController;
 
-    const int Chasm = -1;
-    const int Ground = 1;
+    public static int Chasm = -1;
+    public static int Ground = 1;
     int[] probabilityArray = new int[10];
+
+    static GameObject[] staticGroundSections;
+    static GameObject[] staticChasms; 
+
 
     // CACHE
     bool leaveGroundCache;
@@ -29,18 +31,15 @@ public class ProceduralGeneration : MonoBehaviour
             else
                 probabilityArray[i] = Chasm;
         }
+        
+        staticGroundSections = groundSections;
+        staticChasms = chasms;
     }
-
-    void Update()
-    {
-        if(playerController.sectionsQueue.Count < 3){
-            Debug.Log("Add section");
-            AddSection(Ground);
-        }
-    }
-    void AddSection(int type){
+    
+    public static GameObject AddSection(int type, GameObject currentGround, GameObject[] ground){
+        int sectionNum;
         if(type == Chasm){
-            int sectionNum = Random.Range(0, chasms.Length);
+            sectionNum = Random.Range(0, staticChasms.Length);
             if(sectionNum % 2 != 0) //since theres always 2 parts of each chasm
                 sectionNum--;
             
@@ -48,16 +47,15 @@ public class ProceduralGeneration : MonoBehaviour
         }
         else{
             //Getting the section
-            int sectionNum;
             do{
-                sectionNum = Random.Range(0, groundSections.Length);
-            }while(playerController.sectionsQueue.Contains(groundSections[sectionNum]));
-            groundSections[sectionNum].SetActive(true);
-            playerController.sectionsQueue.Enqueue(groundSections[sectionNum]);
-            Path sectionPath = groundSections[sectionNum].GetComponent<PathCreator>().path;
+                sectionNum = Random.Range(0, staticGroundSections.Length);
+            }while(ground.Contains<GameObject>(staticGroundSections[sectionNum]));
+
+            staticGroundSections[sectionNum].SetActive(true);
+            Path sectionPath = staticGroundSections[sectionNum].GetComponent<PathCreator>().path;
             
             //Calculating the offset of each point
-            Vector2 lastPoint = playerController.mainGround.path[playerController.mainGround.path.NumPoints-1];
+            Vector2 lastPoint = currentGround.GetComponent<PathCreator>().path[currentGround.GetComponent<PathCreator>().path.NumPoints-1];
             Vector2 moveDistance = new Vector2(lastPoint.x - sectionPath[0].x, lastPoint.y - sectionPath[0].y);
 
             //Moving the section points to the current location
@@ -67,7 +65,9 @@ public class ProceduralGeneration : MonoBehaviour
                 sectionPath.CustomMovePoint(i, sectionPath[i] + moveDistance); 
             }
             // Cleaning up
-            groundSections[sectionNum].GetComponent<GroundCreator>().UpdateGround();
+            staticGroundSections[sectionNum].GetComponent<GroundCreator>().UpdateGround();
         }
+
+        return staticGroundSections[sectionNum];
     }
 }
