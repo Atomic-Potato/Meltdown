@@ -85,8 +85,9 @@ public class PlayerController : MonoBehaviour
         else{
             if(!rigidbody.useGravity){
                 rigidbody.useGravity = true;
-            }  
+            }
             MoveInAir();
+            UpdateGroundInAir();
         }
 
         //Debugging
@@ -136,6 +137,11 @@ public class PlayerController : MonoBehaviour
         rigidbody.velocity = new Vector3(speed, rigidbody.velocity.y, rigidbody.velocity.z);
     }
 
+    void UpdateGroundInAir(){
+        if(transform.position.x > groundPoints[groundPoints.Length-1].x){
+            UpdateGroundPoints();
+        }
+    }
 
     float CalculateSpeed(float s, float minS, float rate){
         if(s > minS){
