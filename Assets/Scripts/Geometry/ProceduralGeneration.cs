@@ -6,16 +6,15 @@ public class ProceduralGeneration : MonoBehaviour
 {
     [Range(0, 10)] [Tooltip("The probability that a ground section will spawn")]
     [SerializeField] int groundGenerationBias = 7;
-    [SerializeField] float groundHeight;
+    [SerializeField] float chasmsWidth = 5f;
+    [SerializeField] float chasmsHeight = 2.5f;
     [SerializeField] GameObject[] groundSections;
     [Tooltip("ALWAYS have the end of the chasm right after the start in the array")]
     [SerializeField] GameObject[] chasms;
     
     [Space]
     [Header("REQUIRED COMPONENTS")]
-    [SerializeField] PlayerController playerController;
     [SerializeField] GameObject groundConnector;
-    [SerializeField] Material groundMaterial;
 
     [Space]
     [Header("DEBUGGING")]
@@ -36,90 +35,122 @@ public class ProceduralGeneration : MonoBehaviour
             else
                 probabilityArray[i] = Chasm;
         }
+
         groundRenderers.Enqueue(new GameObject("NULL"));
         groundRenderers.Enqueue(new GameObject("NULL"));
     }
 
-    void Start(){
+    public int GetRandomGroundType(){
+        return probabilityArray[Random.Range(0, 10)];
     }
+
     
-    public GameObject AddSection(int type, GameObject currentGround, GameObject[] ground){
+    public GameObject AddGroundSection(GameObject currentGround, GameObject[] ground){
         int sectionNum;
-        if(type == Chasm){
+        do
+        {
+            sectionNum = Random.Range(0, groundSections.Length);
+        } while (ground.Contains<GameObject>(groundSections[sectionNum]));
+
+        groundSections[sectionNum].SetActive(true);
+        Path sectionPath = groundSections[sectionNum].GetComponent<PathCreator>().path;
+
+        // Calculating the offset of each point
+        Path currentPath = currentGround.GetComponent<PathCreator>().path;
+        Vector2 lastPoint = currentPath[currentPath.NumPoints - 1];
+        Vector2 moveDistance = new Vector2(lastPoint.x - sectionPath[0].x, lastPoint.y - sectionPath[0].y);
+
+        MoveSection(sectionPath, currentPath, moveDistance);
+        RenderPath(sectionPath, currentPath);
+
+        return groundSections[sectionNum];
+    }
+
+    public GameObject AddLeftChasm(GameObject currentGround, GameObject[] ground){
+        int sectionNum;
+        do{
             sectionNum = Random.Range(0, chasms.Length);
             if(sectionNum % 2 != 0) //since theres always 2 parts of each chasm
                 sectionNum--;
-            
-            //Add a chasm   
+        }while(ground.Contains<GameObject>(chasms[sectionNum]));            
+
+        // Adding first section
+        chasms[sectionNum].SetActive(true);
+        Path sectionPath = chasms[sectionNum].GetComponent<PathCreator>().path;
+
+        //Calculating the offset of each point
+        Path currentPath = currentGround.GetComponent<PathCreator>().path;
+        Vector2 lastPoint = currentPath[currentPath.NumPoints - 1];
+        Vector2 moveDistance = new Vector2(lastPoint.x - sectionPath[0].x, lastPoint.y - sectionPath[0].y);
+        
+        MoveSection(sectionPath, currentPath, moveDistance);
+        RenderPath(sectionPath, currentPath);
+
+        return chasms[sectionNum];
+    }
+
+    public GameObject AddRightChasm(GameObject currentGround, GameObject[] ground){
+        int sectionNum;
+        do{
+            sectionNum = Random.Range(0, chasms.Length);
+            if(sectionNum % 2 == 0) //since theres always 2 parts of each chasm
+                sectionNum++;
+            Debug.Log("Chasm number  : " + sectionNum);
+        }while(ground.Contains<GameObject>(chasms[sectionNum]));            
+
+        // Adding first section
+        chasms[sectionNum].SetActive(true);
+        Path sectionPath = chasms[sectionNum].GetComponent<PathCreator>().path;
+
+        //Calculating the offset of each point
+        Path currentPath = currentGround.GetComponent<PathCreator>().path;
+        Vector2 lastPoint = currentPath[currentPath.NumPoints - 1];
+        Vector2 moveDistance = new Vector2(lastPoint.x + chasmsWidth - sectionPath[0].x, lastPoint.y + chasmsHeight - sectionPath[0].y);
+        
+        MoveSection(sectionPath, currentPath, moveDistance, true);
+        RenderPath(sectionPath, currentPath);
+
+        return chasms[sectionNum];
+    }
+
+    private static void MoveSection(Path nextPath, Path currentPath, Vector2 moveDistance, bool rightChasm = false)
+    {
+        for (int i = 0; i < nextPath.NumPoints; i++)
+        {
+            if (nextPath.AutoSetControlPoints && i % 3 != 0)
+                continue;
+            // Move the first handle of the next section to be at the opposite side 
+            // of the last handle of the current section 
+            if (i == 1 && !rightChasm)
+            {
+                Vector2 handleMoveDist = new Vector2(currentPath[currentPath.NumPoints - 1].x - currentPath[currentPath.NumPoints - 2].x,
+                                                        currentPath[currentPath.NumPoints - 1].y - currentPath[currentPath.NumPoints - 2].y);
+                nextPath.ForceMovePoint(i, currentPath[currentPath.NumPoints - 1] + handleMoveDist);
+                continue;
+            }
+
+            nextPath.ForceMovePoint(i, nextPath[i] + moveDistance);
         }
-        else{
-            //Getting the section
-            do{
-                sectionNum = Random.Range(0, groundSections.Length);
-            }while(ground.Contains<GameObject>(groundSections[sectionNum]));
+    }
 
-            groundSections[sectionNum].SetActive(true);
-            Path sectionPath = groundSections[sectionNum].GetComponent<PathCreator>().path;
-            
-            //Calculating the offset of each point
-            Path currentPath = currentGround.GetComponent<PathCreator>().path;
-            Vector2 lastPoint = currentPath[currentPath.NumPoints-1];
-            Vector2 moveDistance = new Vector2(lastPoint.x - sectionPath[0].x, lastPoint.y - sectionPath[0].y);
+    private void RenderPath(Path nextPath, Path currentPath)
+    {
+        GameObject oldRenderer = groundRenderers.Dequeue();
+        if (oldRenderer != null)
+            Destroy(oldRenderer);
+        GameObject newRenderer = Instantiate(groundConnector);
+        groundRenderers.Enqueue(newRenderer);
+        Path connectionPath = newRenderer.GetComponent<PathCreator>().path;
+        //Matching the first 4 points to the points in the current segment
+        for (int i = 0; i < 4; i++)
+            connectionPath.ForceMovePoint(i, currentPath[i]);
+        //Adding the extra points in the current segment
+        for (int i = 4; i < currentPath.NumPoints; i++)
+            connectionPath.AddPoint(currentPath[i]);
+        //Adding the points of the next segment
+        for (int i = 1; i < nextPath.NumPoints; i++)
+            connectionPath.AddPoint(nextPath[i]);
 
-            //Moving the section points to the current location
-            for(int i=0; i < sectionPath.NumPoints; i++){
-                if(sectionPath.AutoSetControlPoints && i % 3 != 0)
-                    continue;
-                // Move the first handle of the next section to be at the opposite side 
-                // of the last handle of the current section 
-                if(i == 1){
-                    Vector2 handleMoveDist = new Vector2(   currentPath[currentPath.NumPoints - 1].x - currentPath[currentPath.NumPoints-2].x, 
-                                                            currentPath[currentPath.NumPoints - 1].y - currentPath[currentPath.NumPoints-2].y   );
-                    sectionPath.ForceMovePoint(i, currentPath[currentPath.NumPoints-1] + handleMoveDist); 
-                    continue;
-                }
-
-                sectionPath.ForceMovePoint(i, sectionPath[i] + moveDistance); 
-
-            }
-
-            // Rendering the path
-            GameObject oldRenderer = groundRenderers.Dequeue();
-            if(oldRenderer != null){
-                Destroy(oldRenderer);
-            }
-            GameObject newRenderer = Instantiate(groundConnector);
-            groundRenderers.Enqueue(newRenderer);
-            Path connectionPath = newRenderer.GetComponent<PathCreator>().path;
-            //Matching the first 4 points to the points in the current segment
-            for(int i=0; i < 4; i++){
-                connectionPath.ForceMovePoint(i, currentPath[i]);
-            }
-            //Adding the extra points in the current segment
-            for(int i=4; i < currentPath.NumPoints; i++){
-                connectionPath.AddPoint(currentPath[i]);
-            }
-            //Adding the points of the next segment
-            for(int i=1; i < sectionPath.NumPoints; i++){
-                connectionPath.AddPoint(sectionPath[i]);
-            }
-            
-            newRenderer.GetComponent<GroundCreator>().UpdateGround();
-
-            // Cleaning up
-            //groundSections[sectionNum].GetComponent<GroundCreator>().UpdateGround();
-
-            // Vector2[] connectionPoints = new Vector2[currentPath.NumPoints + sectionPath.NumPoints];
-            // Vector2[] currentEvens = currentPath.CalculateEvenlySpacedPoints(0.05f); 
-            // Vector2[] sectionEvens = sectionPath.CalculateEvenlySpacedPoints(0.05f);
-            // connectionPoints.Concat(currentEvens);
-            // connectionPoints.Concat(sectionEvens);
-            // currentEvens.CopyTo(connectionPoints, 0);
-            // sectionEvens.CopyTo(connectionPoints, sectionEvens.Length-1);
-
-            // GameObject connection = Instantiate(groundConnector);
-            // GroundCreator.UpdateCustomGround(connectionPoints, 0.05f, groundHeight, connection.GetComponent<MeshRenderer>(), connection.GetComponent<MeshFilter>());
-        }
-        return groundSections[sectionNum];
+        newRenderer.GetComponent<GroundCreator>().UpdateGround();
     }
 }
