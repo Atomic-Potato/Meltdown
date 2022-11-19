@@ -45,7 +45,8 @@ public class ProceduralGeneration : MonoBehaviour
     }
 
     
-    public GameObject AddGroundSection(GameObject currentGround, GameObject[] ground){
+    public GameObject AddGroundSection(GameObject currentGround, GameObject[] ground)
+    {
         int sectionNum;
         do
         {
@@ -57,14 +58,13 @@ public class ProceduralGeneration : MonoBehaviour
 
         // Calculating the offset of each point
         Path currentPath = currentGround.GetComponent<PathCreator>().path;
-        Vector2 lastPoint = currentPath[currentPath.NumPoints - 1];
-        Vector2 moveDistance = new Vector2(lastPoint.x - sectionPath[0].x, lastPoint.y - sectionPath[0].y);
-
-        MoveSection(sectionPath, currentPath, moveDistance);
+        MoveSection(sectionPath, currentPath, GetMoveDistance(sectionPath, currentPath));
         RenderPath(sectionPath, currentPath);
 
         return groundSections[sectionNum];
     }
+
+    
 
     public GameObject AddLeftChasm(GameObject currentGround, GameObject[] ground){
         int sectionNum;
@@ -83,7 +83,7 @@ public class ProceduralGeneration : MonoBehaviour
         Vector2 lastPoint = currentPath[currentPath.NumPoints - 1];
         Vector2 moveDistance = new Vector2(lastPoint.x - sectionPath[0].x, lastPoint.y - sectionPath[0].y);
         
-        MoveSection(sectionPath, currentPath, moveDistance);
+        MoveSection(sectionPath, currentPath, GetMoveDistance(sectionPath, currentPath));
         RenderPath(sectionPath, currentPath);
 
         return chasms[sectionNum];
@@ -95,7 +95,6 @@ public class ProceduralGeneration : MonoBehaviour
             sectionNum = Random.Range(0, chasms.Length);
             if(sectionNum % 2 == 0) //since theres always 2 parts of each chasm
                 sectionNum++;
-            Debug.Log("Chasm number  : " + sectionNum + "  LENGTH: " + chasms.Length);
         }while(ground.Contains<GameObject>(chasms[sectionNum]));            
 
         // Adding first section
@@ -114,8 +113,13 @@ public class ProceduralGeneration : MonoBehaviour
         return chasms[sectionNum];
     }
 
-    static void MoveSection(Path nextPath, Path currentPath, Vector2 moveDistance, bool rightChasm = false)
-    {
+    Vector2 GetMoveDistance(Path sectionPath, Path currentPath){
+        Vector2 lastPoint = currentPath[currentPath.NumPoints - 1];
+        Vector2 moveDistance = new Vector2(lastPoint.x - sectionPath[0].x, lastPoint.y - sectionPath[0].y);
+        return moveDistance;
+    }
+
+    void MoveSection(Path nextPath, Path currentPath, Vector2 moveDistance, bool rightChasm = false){
         for (int i = 0; i < nextPath.NumPoints; i++)
         {
             if (nextPath.AutoSetControlPoints && i % 3 != 0)
@@ -124,9 +128,16 @@ public class ProceduralGeneration : MonoBehaviour
             // of the last handle of the current section 
             if (i == 1 && !rightChasm)
             {
-                Vector2 handleMoveDist = new Vector2(currentPath[currentPath.NumPoints - 1].x - currentPath[currentPath.NumPoints - 2].x,
-                                                        currentPath[currentPath.NumPoints - 1].y - currentPath[currentPath.NumPoints - 2].y);
-                nextPath.ForceMovePoint(i, currentPath[currentPath.NumPoints - 1] + handleMoveDist);
+                // It is necessary to move the handle first
+                // since if not, it will measure the distance
+                // from the original location it was set in
+                nextPath.ForceMovePoint(i, nextPath[i] + moveDistance);
+
+                Vector2 direction = currentPath[currentPath.NumPoints - 1] - currentPath[currentPath.NumPoints - 2];
+                direction = direction.normalized;
+                float distance = Vector2.Distance(currentPath[currentPath.NumPoints - 1], nextPath[i]); 
+
+                nextPath.ForceMovePoint(i, currentPath[currentPath.NumPoints - 1] +  distance * direction);
                 continue;
             }
 
@@ -134,8 +145,7 @@ public class ProceduralGeneration : MonoBehaviour
         }
     }
 
-    void RenderPath(Path nextPath, Path currentPath)
-    {
+    void RenderPath(Path nextPath, Path currentPath){
         GameObject oldRenderer = groundRenderers.Dequeue();
         if (oldRenderer != null)
             Destroy(oldRenderer);
