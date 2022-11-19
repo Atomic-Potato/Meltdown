@@ -8,6 +8,8 @@ public class ProceduralGeneration : MonoBehaviour
     [SerializeField] int groundGenerationBias = 7;
     [SerializeField] float chasmsWidth = 5f;
     [SerializeField] float chasmsHeight = 2.5f;
+    [Tooltip("How many ground pieces can be present on the screen. This includes 0 (Negative numbers are the same as zero)")]
+    [SerializeField] int renderingCount = 3;
     [SerializeField] GameObject[] groundSections;
     [Tooltip("ALWAYS have the end of the chasm right after the start in the array")]
     [SerializeField] GameObject[] chasms;
@@ -22,6 +24,7 @@ public class ProceduralGeneration : MonoBehaviour
     public static int Chasm = -1;
     public static int Ground = 1;
     int[] probabilityArray = new int[10];
+    int deRenderingIndex;
     Queue<GameObject> groundRenderers = new Queue<GameObject>();
 
     // CACHE
@@ -38,6 +41,8 @@ public class ProceduralGeneration : MonoBehaviour
 
         groundRenderers.Enqueue(new GameObject("NULL"));
         groundRenderers.Enqueue(new GameObject("NULL"));
+
+        deRenderingIndex = renderingCount;
     }
 
     public int GetRandomGroundType(){
@@ -146,9 +151,14 @@ public class ProceduralGeneration : MonoBehaviour
     }
 
     void RenderPath(Path nextPath, Path currentPath){
-        GameObject oldRenderer = groundRenderers.Dequeue();
-        if (oldRenderer != null)
-            Destroy(oldRenderer);
+        deRenderingIndex--;
+        if (deRenderingIndex <= 0){
+            GameObject oldRenderer = groundRenderers.Dequeue();
+            if(oldRenderer != null)
+                Destroy(oldRenderer);
+            deRenderingIndex++; // NOTE: if we reset it to the original it will keep stacking up
+        }
+
         GameObject newRenderer = Instantiate(groundConnector);
         groundRenderers.Enqueue(newRenderer);
         Path connectionPath = newRenderer.GetComponent<PathCreator>().path;
@@ -167,8 +177,9 @@ public class ProceduralGeneration : MonoBehaviour
 
     void RenderSection(Path sectionPath){
         GameObject oldRenderer = groundRenderers.Dequeue();
-        if (oldRenderer != null)
+        if (oldRenderer != null){
             Destroy(oldRenderer);
+        }
 
         GameObject newRenderer = Instantiate(groundConnector);
         groundRenderers.Enqueue(newRenderer);
