@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Rigidbody rigidbody;
     [SerializeField] Transform groundBox;
     [SerializeField] GameObject spriteObject;
+    [SerializeField] ProceduralGeneration proceduralGenerator; 
     //Ground generation
     [SerializeField] GameObject mainGroundObject;
     GameObject[] spawnedGroundSections = new GameObject[3];
@@ -70,7 +71,7 @@ public class PlayerController : MonoBehaviour
 
         spawnedGroundSections[0] = null;
         spawnedGroundSections[1] = mainGroundObject;
-        spawnedGroundSections[2] = ProceduralGeneration.AddSection(ProceduralGeneration.Ground, mainGroundObject, spawnedGroundSections);
+        spawnedGroundSections[2] = proceduralGenerator.AddSection(ProceduralGeneration.Ground, mainGroundObject, spawnedGroundSections);
     }
 
     void Update(){
@@ -210,7 +211,7 @@ public class PlayerController : MonoBehaviour
         groundPoints = mainGroundObject.GetComponent<PathCreator>().path.CalculateEvenlySpacedPoints(groundSpacing); 
         targetPoint = 0;
 
-        spawnedGroundSections[2] = ProceduralGeneration.AddSection(ProceduralGeneration.Ground, mainGroundObject, spawnedGroundSections);
+        spawnedGroundSections[2] = proceduralGenerator.AddSection(ProceduralGeneration.Ground, mainGroundObject, spawnedGroundSections);
     }
 
     public void SetTargetToNearstFrontPoint(){

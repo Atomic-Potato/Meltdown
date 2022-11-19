@@ -6,7 +6,6 @@ using UnityEngine;
 public class Path{
     [SerializeField, HideInInspector] List<Vector2> points;
     [SerializeField, HideInInspector] bool autoSetControlPoints;
-
     public Path(Vector2 center){
         points = new List<Vector2>{
             center + Vector2.left,
@@ -108,7 +107,7 @@ public class Path{
         }
     }
 
-    public void CustomMovePoint(int i, Vector2 position){
+    public void ForceMovePoint(int i, Vector2 position){
         points[i] = position;
     }
 
