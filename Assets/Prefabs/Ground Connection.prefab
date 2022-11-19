@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spacing: 0.05
-  groundHeight: 50
+  groundHeight: 10
   tiling: 1
   autoUpdate: 1
   pathCreator: {fileID: 1968631063401204191}

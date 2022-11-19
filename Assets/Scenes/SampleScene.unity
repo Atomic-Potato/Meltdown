@@ -1426,7 +1426,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 734a332e4edfe6e4599362d732ec6ece, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jumpForce: 45
+  jumpForce: 100
   initialBoost: 15
   minSpeed: 30
   slowDownRate: 0.25
@@ -2358,8 +2358,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   groundGenerationBias: 0
-  chasmsWidth: 48.71
-  chasmsHeight: 18.15
+  chasmsWidth: 30.01
+  chasmsHeight: 0
   groundSections:
   - {fileID: 58945823}
   - {fileID: 1500263340}
@@ -2368,6 +2368,7 @@ MonoBehaviour:
   - {fileID: 14131095}
   - {fileID: 1775986847}
   - {fileID: 1353881799}
+  - {fileID: 1624790241}
   groundConnector: {fileID: 249277593379235529, guid: 8c8adf2301e417e4d97913af302a4898, type: 3}
 --- !u!4 &1581785361
 Transform:

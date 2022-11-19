@@ -95,7 +95,7 @@ public class ProceduralGeneration : MonoBehaviour
             sectionNum = Random.Range(0, chasms.Length);
             if(sectionNum % 2 == 0) //since theres always 2 parts of each chasm
                 sectionNum++;
-            Debug.Log("Chasm number  : " + sectionNum);
+            Debug.Log("Chasm number  : " + sectionNum + "  LENGTH: " + chasms.Length);
         }while(ground.Contains<GameObject>(chasms[sectionNum]));            
 
         // Adding first section
@@ -108,12 +108,13 @@ public class ProceduralGeneration : MonoBehaviour
         Vector2 moveDistance = new Vector2(lastPoint.x + chasmsWidth - sectionPath[0].x, lastPoint.y + chasmsHeight - sectionPath[0].y);
         
         MoveSection(sectionPath, currentPath, moveDistance, true);
-        RenderPath(sectionPath, currentPath);
+        //RenderPath(sectionPath, currentPath);
+        RenderSection(sectionPath);
 
         return chasms[sectionNum];
     }
 
-    private static void MoveSection(Path nextPath, Path currentPath, Vector2 moveDistance, bool rightChasm = false)
+    static void MoveSection(Path nextPath, Path currentPath, Vector2 moveDistance, bool rightChasm = false)
     {
         for (int i = 0; i < nextPath.NumPoints; i++)
         {
@@ -133,7 +134,7 @@ public class ProceduralGeneration : MonoBehaviour
         }
     }
 
-    private void RenderPath(Path nextPath, Path currentPath)
+    void RenderPath(Path nextPath, Path currentPath)
     {
         GameObject oldRenderer = groundRenderers.Dequeue();
         if (oldRenderer != null)
@@ -150,6 +151,25 @@ public class ProceduralGeneration : MonoBehaviour
         //Adding the points of the next segment
         for (int i = 1; i < nextPath.NumPoints; i++)
             connectionPath.AddPoint(nextPath[i]);
+
+        newRenderer.GetComponent<GroundCreator>().UpdateGround();
+    }
+
+    void RenderSection(Path sectionPath){
+        GameObject oldRenderer = groundRenderers.Dequeue();
+        if (oldRenderer != null)
+            Destroy(oldRenderer);
+
+        GameObject newRenderer = Instantiate(groundConnector);
+        groundRenderers.Enqueue(newRenderer);
+
+        Path connectionPath = newRenderer.GetComponent<PathCreator>().path;
+        //Matching the first 4 points to the points in the section
+        for(int i=0; i < 4; i++)
+            connectionPath.ForceMovePoint(i, sectionPath[i]);
+        //Adding the extra points in the current section
+        for (int i = 4; i < sectionPath.NumPoints; i++)
+            connectionPath.AddPoint(sectionPath[i]);
 
         newRenderer.GetComponent<GroundCreator>().UpdateGround();
     }
