@@ -97,8 +97,8 @@ public class PlayerController : MonoBehaviour
     }
 
     void FixedUpdate() {
-        if(applyGravity)
-            Physicsf.ApplyGravity(rigidbody, gravityScale);    
+        // if(applyGravity)
+        //     Physicsf.ApplyGravity(rigidbody, gravityScale);    
     }
 
 
