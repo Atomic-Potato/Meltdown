@@ -15,9 +15,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float slowDownRate = 0.25f;
     [SerializeField] float gravityScale = 1f;
     [Tooltip("The higher, the more accurate is the movement")]
-    public float groundSpacing;
-
     [Space]
+    public float groundSpacing;
     [SerializeField] float distanceToGrounded = 0.1f;
     
     
@@ -187,7 +186,8 @@ public class PlayerController : MonoBehaviour
     }
 
     void Jump(){
-        rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        Vector2 prependicular = new Vector2(-direction.y, direction.x);
+        rigidbody.AddForce(prependicular * jumpForce, ForceMode.Impulse);
         StartCoroutine(PositiveSwitch(_ => isJustJumped = _));
     }
     #endregion
