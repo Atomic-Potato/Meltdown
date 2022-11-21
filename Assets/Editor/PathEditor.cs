@@ -54,22 +54,28 @@ public class PathEditor : Editor{
         //Drawing the lines and the Bezier for each segment
         for(int i=0; i < Path.NumSegments; i++){
             Vector2[] points = Path.GetPointsInSegment(i);
-            Handles.color = Color.white;
-            Handles.DrawLine(points[0], points[1]);
-            Handles.DrawLine(points[2], points[3]);
-            Handles.DrawBezier(points[0], points[3], points[1], points[2], Color.green, null, 2);
+            if(creator.displayControlPoints){
+                Handles.color = Color.white;
+                Handles.DrawLine(points[0], points[1]);
+                Handles.DrawLine(points[2], points[3]);
+            }
+            Handles.DrawBezier(points[0], points[3], points[1], points[2], creator.segementCol, null, 2);
         }
 
         //Drawing the handles for every point in every segment
-        Handles.color = Color.red;
         for(int i=0; i < Path.NumPoints; i++){
-            //This function also returns the handle position if its moved
-            Vector2 newPosition = Handles.FreeMoveHandle(Path[i], Quaternion.identity, .1f, Vector2.zero, Handles.CylinderHandleCap);
+            if(i%3 == 0 || creator.displayControlPoints){
+                Handles.color = i%3 == 0 ? creator.anchorCol : creator.controlCol;
+                float handleSize = i%3 == 0 ? creator.anchorDiameter : creator.controlDiameter;
 
-            //If we detect a change in position
-            if(Path[i] != newPosition){
-                Undo.RecordObject(creator, "Move point"); //records this action so it can be undone
-                Path.MovePoint(i, newPosition);
+                //This function also returns the handle position if its moved
+                Vector2 newPosition = Handles.FreeMoveHandle(Path[i], Quaternion.identity, handleSize, Vector2.zero, Handles.CylinderHandleCap);
+
+                //If we detect a change in position
+                if(Path[i] != newPosition){
+                    Undo.RecordObject(creator, "Move point"); //records this action so it can be undone
+                    Path.MovePoint(i, newPosition);
+                }
             }
         }
     }

@@ -3,11 +3,12 @@ using UnityEngine;
 [RequireComponent(typeof(PathCreator))]
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(MeshFilter))]
+
 public class GroundCreator : MonoBehaviour{
 
     [Range(.05f, 1.5f)]
-    [SerializeField] float spacing = 1f;
-    [SerializeField] float groundHeight = 5f;
+    [SerializeField] float spacing = 0.05f;
+    public float groundHeight = 5f;
     [SerializeField] float tiling = 1f;
     public bool autoUpdate;
 
@@ -18,10 +19,17 @@ public class GroundCreator : MonoBehaviour{
 
     public void UpdateGround(){
         Vector2[] points = pathCreator.path.CalculateEvenlySpacedPoints(spacing);
-        meshFilter.mesh = CreateGroundMesh(points);
+        meshFilter.mesh = CreateGroundMesh(points, groundHeight);
         
         int textureRepeat = Mathf.RoundToInt(tiling * points.Length * spacing * .05f);
         meshRenderer.sharedMaterial.mainTextureScale = new Vector2(1, textureRepeat);
+    }
+
+    public static void UpdateCustomGround(Vector2[] points, float space, float groundHeight, MeshRenderer meshRend, MeshFilter meshFil){
+        meshFil.mesh = CreateGroundMesh(points, groundHeight);
+        
+        int textureRepeat = Mathf.RoundToInt(points.Length * space * .05f);
+        meshRend.sharedMaterial.mainTextureScale = new Vector2(1, textureRepeat);
     }
 
     /* To Create a mesh we get the evenly spaced points along a curve
@@ -30,7 +38,7 @@ public class GroundCreator : MonoBehaviour{
     *  (However for our case the vertex on the left will be the same as the point)
     *  Then connect them with the next point vertecies to form 2 triangles
     */
-    Mesh CreateGroundMesh(Vector2[] points){
+    private static Mesh CreateGroundMesh(Vector2[] points, float groundHeight){
         Vector3[] verts = new Vector3[points.Length * 2];
         Vector2[] uvs = new Vector2[verts.Length];
         int[] triangles = new int[2 * (points.Length - 1) * 3];
@@ -45,13 +53,17 @@ public class GroundCreator : MonoBehaviour{
             if(i < points.Length - 1)
                 forward += points[i+1] - points[i];
             if(i > 0)
+            {
                 forward += points[i] - points[i-1];
+            }
             forward.Normalize();
 
             //Adding vertecies
             //Left prependicular forward(-y, x), but we want it to be on the point
             //Right prependicular forward(y, -x)
             Vector2 right = new Vector2(forward.y, -forward.x);
+
+            // In case we're at the last vertex, we extend its length because of a gap that sometimes happen
             verts[vertIndex] = points[i];
             verts[vertIndex+1] = points[i] + right * groundHeight * .5f;
             

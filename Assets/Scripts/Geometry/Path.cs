@@ -6,7 +6,6 @@ using UnityEngine;
 public class Path{
     [SerializeField, HideInInspector] List<Vector2> points;
     [SerializeField, HideInInspector] bool autoSetControlPoints;
-
     public Path(Vector2 center){
         points = new List<Vector2>{
             center + Vector2.left,
@@ -60,6 +59,10 @@ public class Path{
             AutoSetAffectedControlPoints(points.Count - 1);
     }
 
+    public void AddPoint(Vector2 pointPos){
+        points.Add(pointPos);
+    }
+
     public void RemoveFirstSegment(){
         if(NumSegments > 2)
             points.RemoveRange(0,3);
@@ -102,6 +105,10 @@ public class Path{
                 }
             }
         }
+    }
+
+    public void ForceMovePoint(int i, Vector2 position){
+        points[i] = position;
     }
 
     public Vector2[] CalculateEvenlySpacedPoints(float spacing, float resolution = 1){
