@@ -1034,7 +1034,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -29.4, y: 0.12, z: -41.1}
+  m_LocalPosition: {x: -29.4, y: 0.12, z: -26.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2360,10 +2360,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b402615e1a80a464496388b5be8d2f59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundGenerationBias: 10
+  groundGenerationBias: 5
   chasmsWidth: 30.01
   chasmsHeight: 0
-  deRenderingCount: 8
+  renderingCount: 3
   groundSections:
   - {fileID: 58945823}
   - {fileID: 1500263340}
@@ -2374,7 +2374,6 @@ MonoBehaviour:
   - {fileID: 1353881799}
   - {fileID: 1624790241}
   groundConnector: {fileID: 249277593379235529, guid: 8c8adf2301e417e4d97913af302a4898, type: 3}
-  deRenderingIndex: 0
 --- !u!4 &1581785361
 Transform:
   m_ObjectHideFlags: 0

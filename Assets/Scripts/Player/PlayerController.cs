@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float minSpeed = 17f;
     [Range(0f, 2.5f)]
     [SerializeField] float slowDownRate = 0.25f;
+    [SerializeField] float gravityScale = 1f;
     [Tooltip("The higher, the more accurate is the movement")]
     public float groundSpacing;
 
@@ -54,6 +55,7 @@ public class PlayerController : MonoBehaviour
     float speed;
     float boost;
     bool chamsChosen = false;
+    bool applyGravity = true;
     Vector2 direction;
 
 
@@ -92,6 +94,11 @@ public class PlayerController : MonoBehaviour
 
         //Debugging
         DisplayNextPathPoint();
+    }
+
+    void FixedUpdate() {
+        if(applyGravity)
+            Physicsf.ApplyGravity(rigidbody, gravityScale);    
     }
 
 
