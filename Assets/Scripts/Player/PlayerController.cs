@@ -86,8 +86,8 @@ public class PlayerController : MonoBehaviour
             MoveAlongGround();
         }
         else{
-            if(!rigidbody.useGravity){
-                rigidbody.useGravity = true;
+            if(!applyGravity){
+                applyGravity = true;
             }
             MoveInAir();
         }
@@ -97,8 +97,8 @@ public class PlayerController : MonoBehaviour
     }
 
     void FixedUpdate() {
-        // if(applyGravity)
-        //     Physicsf.ApplyGravity(rigidbody, gravityScale);    
+        if(applyGravity)
+            Physicsf.ApplyGravity(rigidbody, gravityScale);    
     }
 
 
@@ -121,10 +121,10 @@ public class PlayerController : MonoBehaviour
             UpdateGroundPoints();
         }
 
-        if(rigidbody.useGravity){
-            transform.position = groundPoints[targetPoint];
-            rigidbody.useGravity = false;
+        if(applyGravity){
+            applyGravity = false;
             rigidbody.velocity = Vector2.zero;
+            transform.position = groundPoints[targetPoint];
         }
 
         speed = CalculateSpeed(speed, minSpeed, slowDownRate);
@@ -199,7 +199,7 @@ public class PlayerController : MonoBehaviour
         float initialDist = distanceToGrounded;
 
         isGrounded = false;
-        rigidbody.useGravity = true;
+        applyGravity = true;
         distanceToGrounded = 0f;
         
         yield return new WaitForSeconds(resetTime);
