@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     #region PUBLIC AND SERIALIZED VARIABLES
-    [SerializeField] float jumpForce = 5f;
+    [Header("SLIDING")]
     [SerializeField] float initialBoost = 25f;
     [SerializeField] float minSpeedAir = 17f;
     [SerializeField] float minSpeedGrounded = 17f;
@@ -16,9 +16,26 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float slowDownRateAir = 0.25f;
     [Range(0f, 2.5f)]
     [SerializeField] float slowDownRateGrounded = 0.25f;
+    
+    [Space]
+    [Header("JUMPING")]
+    [Tooltip("The jump force when player is neither goind down nor up a slope")]
+    [SerializeField] float jumpForce = 30f;
+    [Space]
+    [Tooltip("The jump force when goind down a slope. (Note that the player jumps to the right instead of up)")]
+    [SerializeField] float downSlopeJumpForce = 30f; 
+    [Range(90f, 180f)]
+    [SerializeField] float downSlopeMinAngle = 125f;
+    [Space]
+    [Tooltip("The jump force when going up a slope. (Note that the player jumps straight up unlike down slopes)")]
+    [SerializeField] float upSlopeJumpForce = 30f; 
+    [Range(0f, 90f)]
+    [SerializeField] float upSlopeMinAngle = 45f;
+
+    [Space]
+    [Header("SYSTEMS")]
     [SerializeField] float gravityScale = 1f;
     [Tooltip("The higher, the more accurate is the movement")]
-    [Space]
     public float groundSpacing;
     [SerializeField] float distanceToGrounded = 0.1f;
     
@@ -42,6 +59,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool inEditorDrawing;
     [SerializeField] bool debugGrounded;
     [SerializeField] bool debugVelocity;
+    [SerializeField] bool debugAngleWithGround;
+    [SerializeField] bool debugJumpSlope;
     [SerializeField] GameObject targetObject;
 
     // STATES
@@ -57,6 +76,7 @@ public class PlayerController : MonoBehaviour
     #region PRIVATE VARIABLES
     float speed;
     float boost;
+    float angleWithGround;
     bool chamsChosen = false;
     bool applyGravity = true;
     
@@ -88,6 +108,7 @@ public class PlayerController : MonoBehaviour
         isGrounded = GroundCheck();
 
         if(isGrounded){
+            angleWithGround = Vector2.Angle(Vector2.up, direction);
         }
 
         //Debugging
@@ -100,6 +121,10 @@ public class PlayerController : MonoBehaviour
                 float rbVelMagnitude = Mathf.Sqrt(Mathf.Pow(rigidbody.velocity.x,2) + Mathf.Pow(rigidbody.velocity.y,2));
                 LogMessage("[AIR] Velocity magnitude : " + rbVelMagnitude + "\nVelocity vector : " + rigidbody.velocity);
             }
+        }
+        if(debugAngleWithGround){
+            if(isGrounded)
+            LogMessage($"Angle with ground: <color=magenta>" + angleWithGround + "</color>");
         }
         DisplayNextPathPoint();
     }
@@ -204,15 +229,28 @@ public class PlayerController : MonoBehaviour
             if(!isGrounded)
                 return;
             if(!leaveGroundCache)
-                StartCoroutine(LeaveGround(0.25f));
+                StartCoroutine(LeaveGround(0.075f));
             Jump();
         }
     }
 
     void Jump(){
-        //Vector2 prependicular = new Vector2(-direction.y, direction.x);
-        rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y + jumpForce, rigidbody.velocity.z);
-        //rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        if(angleWithGround > downSlopeMinAngle){
+            rigidbody.velocity = new Vector3(rigidbody.velocity.x + downSlopeJumpForce, rigidbody.velocity.y, rigidbody.velocity.z);
+            if(debugJumpSlope)
+                LogMessage($"Jump slope: <color=red>Down Slope</color>");
+        }
+        else if(angleWithGround < upSlopeMinAngle){
+            rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y + upSlopeJumpForce, rigidbody.velocity.z);
+            if(debugJumpSlope)
+                LogMessage($"Jump slope: <color=green>Up Slope</color>");
+        }
+        else{
+            rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y + jumpForce, rigidbody.velocity.z);
+            if(debugJumpSlope)
+                LogMessage($"Jump slope: <color=blue>Normal Slope</color>");
+        }
+
         StartCoroutine(PositiveSwitch(_ => isJustJumped = _));
     }
     #endregion
@@ -227,7 +265,7 @@ public class PlayerController : MonoBehaviour
         applyGravity = true;
         distanceToGrounded = 0f;
 
-        rigidbody.velocity = new Vector3(velocity.x, rigidbody.velocity.y, rigidbody.velocity.z);
+        rigidbody.velocity = new Vector3(velocity.x, velocity.y, rigidbody.velocity.z);
         
         yield return new WaitForSeconds(resetTime);
 
@@ -240,6 +278,18 @@ public class PlayerController : MonoBehaviour
         while(targetPoint < groundPoints.Length && groundPoints[targetPoint].x < transform.position.x)
             targetPoint++;
     }
+
+    void ClaculateGroundedVelocity(){
+        velocityMagnitude = Vector2.Distance(prevPosition, transform.position)/Time.deltaTime;
+        velocity = new Vector2((transform.position.x - prevPosition.x)/Time.deltaTime, (transform.position.y - prevPosition.y)/Time.deltaTime);
+        prevPosition = transform.position;
+    }
+
+    void ClaculateGroundedVelocity(Vector2 previous, Vector2 current){
+        velocityMagnitude = Vector2.Distance(previous, current)/Time.deltaTime;
+        velocity = new Vector2((current.x - previous.x)/Time.deltaTime, (current.y - previous.y)/Time.deltaTime);
+    }
+
 
     IEnumerator PositiveSwitch(Action<bool> key, WaitForSeconds time = null){
         key(true);
@@ -301,16 +351,7 @@ public class PlayerController : MonoBehaviour
         }
     }
     
-    void ClaculateGroundedVelocity(){
-        velocityMagnitude = Vector2.Distance(prevPosition, transform.position)/Time.deltaTime;
-        velocity = new Vector2((transform.position.x - prevPosition.x)/Time.deltaTime, (transform.position.y - prevPosition.y)/Time.deltaTime);
-        prevPosition = transform.position;
-    }
-
-    void ClaculateGroundedVelocity(Vector2 previous, Vector2 current){
-        velocityMagnitude = Vector2.Distance(previous, current)/Time.deltaTime;
-        velocity = new Vector2((current.x - previous.x)/Time.deltaTime, (current.y - previous.y)/Time.deltaTime);
-    }
+    
     #endregion
 
     #region  LOGGING
