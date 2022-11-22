@@ -10,9 +10,12 @@ public class PlayerController : MonoBehaviour
     #region PUBLIC AND SERIALIZED VARIABLES
     [SerializeField] float jumpForce = 5f;
     [SerializeField] float initialBoost = 25f;
-    [SerializeField] float minSpeed = 17f;
+    [SerializeField] float minSpeedAir = 17f;
+    [SerializeField] float minSpeedGrounded = 17f;
     [Range(0f, 2.5f)]
-    [SerializeField] float slowDownRate = 0.25f;
+    [SerializeField] float slowDownRateAir = 0.25f;
+    [Range(0f, 2.5f)]
+    [SerializeField] float slowDownRateGrounded = 0.25f;
     [SerializeField] float gravityScale = 1f;
     [Tooltip("The higher, the more accurate is the movement")]
     [Space]
@@ -104,7 +107,6 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate() {
         if(isGrounded){
             MoveAlongGround();
-            //ClaculateGroundedVelocity();
         }
 
         if(applyGravity)
@@ -145,7 +147,7 @@ public class PlayerController : MonoBehaviour
             transform.position = groundPoints[targetPoint];
         }
 
-        speed = CalculateSpeed(speed, minSpeed, slowDownRate);
+        speed = CalculateSpeed(speed, minSpeedGrounded, slowDownRateGrounded);
         direction = GetDirection(targetPoint, targetPoint+1);
         transform.rotation = RotateInDirection(direction);
         transform.position += (Vector3)direction * speed * Time.deltaTime;
@@ -163,7 +165,9 @@ public class PlayerController : MonoBehaviour
     }
 
     void MoveInAir(){
-        //speed = CalculateSpeed(speed, )
+        rigidbody.velocity = new Vector3(CalculateSpeed(rigidbody.velocity.x, minSpeedAir, slowDownRateAir), rigidbody.velocity.y, rigidbody.velocity.z);
+        //speed = CalculateSpeed(velocityMagnitude, minSpeedAir, slowDownRateAir);
+        //transform.position += (Vector3)direction * speed * Time.deltaTime;
     }
 
     void UpdateGroundInAir(){
@@ -207,7 +211,8 @@ public class PlayerController : MonoBehaviour
 
     void Jump(){
         //Vector2 prependicular = new Vector2(-direction.y, direction.x);
-        rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y + jumpForce, rigidbody.velocity.z);
+        //rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         StartCoroutine(PositiveSwitch(_ => isJustJumped = _));
     }
     #endregion
