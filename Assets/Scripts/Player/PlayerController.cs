@@ -38,6 +38,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool enableLogging;
     [SerializeField] bool inEditorDrawing;
     [SerializeField] bool debugGrounded;
+    [SerializeField] bool debugVelocity;
     [SerializeField] GameObject targetObject;
 
     // STATES
@@ -55,8 +56,12 @@ public class PlayerController : MonoBehaviour
     float boost;
     bool chamsChosen = false;
     bool applyGravity = true;
-    Vector2 direction;
-
+    
+    float velocityMagnitude = 0f; 
+    Vector2 velocity = Vector2.zero;
+    
+    Vector2 direction = Vector2.right;
+    Vector2 prevPosition = Vector2.zero;
 
     //CACHE
     bool leaveGroundCache;
@@ -66,7 +71,8 @@ public class PlayerController : MonoBehaviour
     void Start(){
         boost = initialBoost;
         speed = boost;
-        rigidbody.velocity = new Vector3(speed, 0f, 0f);
+        velocity = direction * speed;
+        rigidbody.velocity = velocity;
 
         groundPoints = mainGroundObject.GetComponent<PathCreator>().path.CalculateEvenlySpacedPoints(groundSpacing);
 
@@ -76,28 +82,41 @@ public class PlayerController : MonoBehaviour
     }
 
     void Update(){
-        if(debugGrounded)
-            LogMessage("Grounded : " + isGrounded);
-
         isGrounded = GroundCheck();
 
         if(isGrounded){
-            MoveAlongGround();
-        }
-        else{
-            if(!applyGravity){
-                applyGravity = true;
-            }
-            MoveInAir();
         }
 
         //Debugging
+        if(debugGrounded)
+            LogMessage("Grounded : " + isGrounded);
+        if(debugVelocity){
+            if(isGrounded)
+                LogMessage("[GROUND] Velocity magnitude : " + velocityMagnitude + "\nVelocity vector : " + velocity);
+            else{
+                float rbVelMagnitude = Mathf.Sqrt(Mathf.Pow(rigidbody.velocity.x,2) + Mathf.Pow(rigidbody.velocity.y,2));
+                LogMessage("[AIR] Velocity magnitude : " + rbVelMagnitude + "\nVelocity vector : " + rigidbody.velocity);
+            }
+        }
         DisplayNextPathPoint();
     }
 
     void FixedUpdate() {
+        if(isGrounded){
+            MoveAlongGround();
+            //ClaculateGroundedVelocity();
+        }
+
         if(applyGravity)
-            Physicsf.ApplyGravity(rigidbody, gravityScale);    
+            Physicsf.ApplyGravity(rigidbody, gravityScale);   
+
+        if(!isGrounded){
+            if(!applyGravity){
+                applyGravity = true;
+            }
+            MoveInAir();
+            UpdateGroundInAir();
+        } 
     }
 
 
@@ -131,6 +150,9 @@ public class PlayerController : MonoBehaviour
         transform.rotation = RotateInDirection(direction);
         transform.position += (Vector3)direction * speed * Time.deltaTime;
 
+        // NOTE: We calculate the velocity here to ignore when the position is hard set later down in the if statement
+        ClaculateGroundedVelocity(transform.position - (Vector3)direction * speed * Time.deltaTime, transform.position);
+
         if(targetPoint < groundPoints.Length-1 && transform.position.x > groundPoints[targetPoint].x){
             SetTargetToNearstFrontPoint();
             if(targetPoint-1 < groundPoints.Length){
@@ -141,9 +163,7 @@ public class PlayerController : MonoBehaviour
     }
 
     void MoveInAir(){
-        speed = CalculateSpeed(rigidbody.velocity.x, minSpeed, slowDownRate);
-        rigidbody.velocity = new Vector3(speed, rigidbody.velocity.y, rigidbody.velocity.z);
-        UpdateGroundInAir();
+        //speed = CalculateSpeed(speed, )
     }
 
     void UpdateGroundInAir(){
@@ -152,13 +172,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    float CalculateSpeed(float s, float minS, float rate){
-        if(s > minS){
-            s -= rate;
+    float CalculateSpeed(float currentSpeed, float minSpeed, float rate){
+        if(currentSpeed > minSpeed){
+            currentSpeed -= rate;
         }
-        else if(s < minS)
-            s = minS;
-        return s;
+        else if(currentSpeed < minSpeed)
+            currentSpeed = minSpeed;
+        return currentSpeed;
     }
 
     Vector2 GetDirection(int ptCurr, int ptNext){
@@ -186,8 +206,8 @@ public class PlayerController : MonoBehaviour
     }
 
     void Jump(){
-        Vector2 prependicular = new Vector2(-direction.y, direction.x);
-        rigidbody.AddForce(prependicular * jumpForce, ForceMode.Impulse);
+        //Vector2 prependicular = new Vector2(-direction.y, direction.x);
+        rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         StartCoroutine(PositiveSwitch(_ => isJustJumped = _));
     }
     #endregion
@@ -201,6 +221,8 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
         applyGravity = true;
         distanceToGrounded = 0f;
+
+        rigidbody.velocity = new Vector3(velocity.x, rigidbody.velocity.y, rigidbody.velocity.z);
         
         yield return new WaitForSeconds(resetTime);
 
@@ -274,6 +296,16 @@ public class PlayerController : MonoBehaviour
         }
     }
     
+    void ClaculateGroundedVelocity(){
+        velocityMagnitude = Vector2.Distance(prevPosition, transform.position)/Time.deltaTime;
+        velocity = new Vector2((transform.position.x - prevPosition.x)/Time.deltaTime, (transform.position.y - prevPosition.y)/Time.deltaTime);
+        prevPosition = transform.position;
+    }
+
+    void ClaculateGroundedVelocity(Vector2 previous, Vector2 current){
+        velocityMagnitude = Vector2.Distance(previous, current)/Time.deltaTime;
+        velocity = new Vector2((current.x - previous.x)/Time.deltaTime, (current.y - previous.y)/Time.deltaTime);
+    }
     #endregion
 
     #region  LOGGING
