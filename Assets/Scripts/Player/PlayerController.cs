@@ -30,7 +30,7 @@ public class PlayerController : MonoBehaviour
     [Tooltip("The jump force when going up a slope. (Note that the player jumps straight up unlike down slopes)")]
     [SerializeField] float upSlopeJumpForce = 30f; 
     [Range(0f, 90f)]
-    [SerializeField] float upSlopeMinAngle = 45f;
+    [SerializeField] float upSlopeMaxAngle = 45f;
 
     [Space]
     [Header("SYSTEMS")]
@@ -228,8 +228,12 @@ public class PlayerController : MonoBehaviour
         if(context.started){    
             if(!isGrounded)
                 return;
-            if(!leaveGroundCache)
-                StartCoroutine(LeaveGround(0.075f));
+            if(!leaveGroundCache){
+                if(angleWithGround < upSlopeMaxAngle)
+                    StartCoroutine(LeaveGround(0.25f));
+                else
+                    StartCoroutine(LeaveGround(0.075f));
+            }
             Jump();
         }
     }
@@ -240,7 +244,7 @@ public class PlayerController : MonoBehaviour
             if(debugJumpSlope)
                 LogMessage($"Jump slope: <color=red>Down Slope</color>");
         }
-        else if(angleWithGround < upSlopeMinAngle){
+        else if(angleWithGround < upSlopeMaxAngle){
             rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y + upSlopeJumpForce, rigidbody.velocity.z);
             if(debugJumpSlope)
                 LogMessage($"Jump slope: <color=green>Up Slope</color>");
