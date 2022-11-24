@@ -273,39 +273,53 @@ public class PlayerController : MonoBehaviour
         float rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         return Quaternion.Euler( 0f, 0f, rotation);
     }
+    #endregion
 
-    bool CheckForGroundSlipping(){  
+    #region GROUND SLIPPING
+    bool CheckForGroundSlipping()
+    {
         if (!isGrounded || downSlope || !groundSlipping)
             return false;
 
-        float angleLimit = 0;
-        if(normalSlope) {
-            targetPointsDiff = (int)((velocityMagnitude - minSpeedGrounded) * (float)maxTargetDifferenceNormalSlope / (maxSpeedGrounded - minSpeedGrounded));
-            angleLimit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded)) * maxAngleDifferenceNormalSlope / (maxSpeedGrounded - minSpeedGrounded);
-        }
-        else{
-            targetPointsDiff = (int)((velocityMagnitude - minSpeedGrounded) * (float)maxTargetDifferenceUpSlope / (maxSpeedGrounded - minSpeedGrounded));
-            angleLimit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded)) * maxAngleDifferenceUpSlope / (maxSpeedGrounded - minSpeedGrounded);
-        }
-            
-        Vector2 targetNextDirection = Vector2.zero;
-        if(targetPoint + targetPointsDiff < groundPoints.Length - 1)
-            targetNextDirection =  GetDirection(targetPoint + targetPointsDiff, targetPoint + targetPointsDiff + 1);
-        else
-            targetNextDirection =  GetDirection(targetPoint + targetPointsDiff - 1 , targetPoint + targetPointsDiff);
+        SetTargetsDifference();
+        float angleLimit = GetAngleLimit();
+
+        Vector2 targetNextDirection = GetNextTargetDirection();
         float targetNextAngle = Vector2.Angle(Vector2.up, targetNextDirection);
 
+        DebugGroundSlipping(angleLimit, targetNextAngle);
 
-        if(debugGroundSlipping)
-            Debug.Log($"Current angle: <color=blue>" + angleWithGround  + "</color> / Next angle: <color=cyan>" + targetNextAngle 
-                        + "</color> / Slope type: <color=magenta>" + normalSlope 
-                        + "</color>\n Difference: <color=green>" + Mathf.Abs(angleWithGround - targetNextAngle) + "</color> / Angle limit: <color=red>" + angleLimit + "</color>");
-
-        if(Mathf.Abs(angleWithGround - targetNextAngle) > angleLimit)
+        if (Mathf.Abs(angleWithGround - targetNextAngle) > angleLimit)
             return true;
         return false;
     }
 
+    private Vector2 GetNextTargetDirection()
+    {
+        Vector2 targetNextDirection;
+        if (targetPoint + targetPointsDiff < groundPoints.Length - 1)
+            targetNextDirection = GetDirection(targetPoint + targetPointsDiff, targetPoint + targetPointsDiff + 1);
+        else
+            targetNextDirection = GetDirection(targetPoint + targetPointsDiff - 1, targetPoint + targetPointsDiff);
+        return targetNextDirection;
+    }
+
+    float GetAngleLimit(){
+        float angleLimit;
+        if (normalSlope)
+            angleLimit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded)) * maxAngleDifferenceNormalSlope / (maxSpeedGrounded - minSpeedGrounded);
+        else
+            angleLimit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded)) * maxAngleDifferenceUpSlope / (maxSpeedGrounded - minSpeedGrounded);
+
+        return angleLimit;
+    }
+
+    void SetTargetsDifference(){
+        if (normalSlope)
+            targetPointsDiff = (int)((velocityMagnitude - minSpeedGrounded) * (float)maxTargetDifferenceNormalSlope / (maxSpeedGrounded - minSpeedGrounded));
+        else
+            targetPointsDiff = (int)((velocityMagnitude - minSpeedGrounded) * (float)maxTargetDifferenceUpSlope / (maxSpeedGrounded - minSpeedGrounded));
+    }
     #endregion
 
     #region JUMPING
@@ -414,10 +428,10 @@ public class PlayerController : MonoBehaviour
                     // Stop the player in place to do the calculations
                     applyGravity = false;
                     rigidbody.velocity = Vector3.zero;
-                    //Set the ground target point
+                    // Set the ground target point
                     targetPoint = Path.GetNearestPoint(transform.position, groundPoints) + 1;
                     transform.position = groundPoints[targetPoint];
-                    //State bool
+                    // State bool
                     StartCoroutine(PositiveSwitch(_ => isJustLanded = _));  
                 }
                 return true;
@@ -522,17 +536,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void DebugGroundSlipping(float limitGreater, float limitLess){
-        if (debugGroundSlipping){
-            if (normalSlope){
-                LogRay(transform.position, Vector3.down * limitGreater, Color.green);
-                LogRay(transform.position, Vector3.right * limitLess, Color.blue);
-            }
-            else if (upSlope){
-                LogRay(transform.position, Vector3.right * limitGreater, Color.green);
-                LogRay(transform.position, Vector3.up * limitLess, Color.blue);
-            }
-        }
+    void DebugGroundSlipping(float angleLimit, float angle){
+        if (enableLogging && debugGroundSlipping)
+            Debug.Log($"Current angle: <color=blue>" + angleWithGround + "</color> / Next angle: <color=cyan>" + angle
+                        + "</color> / Slope type: <color=magenta>" + normalSlope
+                        + "</color>\n Difference: <color=green>" + Mathf.Abs(angleWithGround - angle) + "</color> / Angle limit: <color=red>" + angleLimit + "</color>");
     }
     #endregion
 }
