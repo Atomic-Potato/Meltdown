@@ -20,18 +20,31 @@ public class PlayerController : MonoBehaviour
 
     [Space]
     [Header("GROUND SLIPPING")]
+    [SerializeField] bool groundSlipping = true;
+    [Space]
     // Sorry these ones are hard to explain without visualizing them
-    [Range(0, 1000)] [Tooltip("Caps the target position in measuring the difference in height or width between the player target position and the second target positon, to decide if to leave the ground or not")]
-    [SerializeField] int maxTargetDifference;
-    [Range(0f, 10f)] [Tooltip("Measure the difference in width between the 2 target points")]
-    [SerializeField] float maxWidthDifference;
-    [Range(0f, 10f)] [Tooltip("Measure the difference in height between the 2 target points")]
-    [SerializeField] float maxHeightDifference;
+    [Range(0, 1000)] [Tooltip("Caps the target position in measuring the difference in height"
+                                + "or width between the player target position and the second"
+                                + "target positon, to decide if to leave the ground or not")]
+    [SerializeField] int maxTargetDifferenceNormalSlope = 125;
+    [Range(0, 1000)] [Tooltip("Caps the target position in measuring the difference in height"
+                                + "or width between the player target position and the second"
+                                + "target positon, to decide if to leave the ground or not")]
+    [SerializeField] int maxTargetDifferenceUpSlope = 215;
+    [Space]
+    [Range(0, 180)] [Tooltip("The angle limit changes between zero and this max. If the current"
+                                + "angle difference is greater than the limit (which varies with speed),"
+                                + "then the player slipps off the ground")]
+    [SerializeField] float maxAngleDifferenceNormalSlope = 100f;
+    [Range(0, 180)] [Tooltip("The angle limit changes between zero and this max. If the current"
+                                + "angle difference is greater than the limit (which varies with speed),"
+                                + "then the player slipps off the ground")]
+    [SerializeField] float maxAngleDifferenceUpSlope = 75f;
     
     [Space]
     [Header("JUMPING")]
     [Tooltip("The jump force when player is neither goind down nor up a slope")]
-    [SerializeField] float jumpForce = 30f;
+    [SerializeField] float jumpForce = 15f;
     [Space]
     [Tooltip("The jump force when goind down a slope. (Note that the player jumps to the right instead of up)")]
     [SerializeField] float downSlopeJumpForce = 30f; 
@@ -241,9 +254,12 @@ public class PlayerController : MonoBehaviour
     }
 
     Vector2 GetDirection(int ptCurr, int ptNext){
-        if(ptCurr >= groundPoints.Length || ptNext >= groundPoints.Length)
-            return Vector2.zero;
-        return (groundPoints[ptNext] - groundPoints[ptCurr]).normalized; 
+        if(ptNext < groundPoints.Length)
+            return (groundPoints[ptNext] - groundPoints[ptCurr]).normalized; 
+        if(ptCurr >= groundPoints.Length)
+            return (groundPointsNext[ptNext - groundPoints.Length] - groundPointsNext[ptCurr - groundPoints.Length]).normalized;
+        else
+            return (groundPointsNext[ptNext - groundPoints.Length] - groundPoints[ptCurr]).normalized;
     }
 
     Quaternion RotateInDirection(Vector2 dir){
@@ -251,55 +267,38 @@ public class PlayerController : MonoBehaviour
         return Quaternion.Euler( 0f, 0f, rotation);
     }
 
-    bool CheckForGroundSlipping(){
-        if(!isGrounded || downSlope)
+    bool CheckForGroundSlipping(){  
+        if (!isGrounded || downSlope || !groundSlipping)
             return false;
 
-        targetPointsDiff = (int)((velocityMagnitude-minSpeedGrounded) *  (float)maxTargetDifference / (maxSpeedGrounded - minSpeedGrounded));
-        float limit = 0f;
-        if(normalSlope)
-            limit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded) - minSpeedGrounded) * (float)maxHeightDifference / (maxSpeedGrounded - minSpeedGrounded);
-        else if(upSlope)
-            limit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded) - minSpeedGrounded) * (float)maxWidthDifference / (maxSpeedGrounded - minSpeedGrounded);
-
-        if(debugGroundSlipping){
-            if(normalSlope){
-                LogRay(transform.position, Vector3.down * limit, Color.green);
-            }
-            else if(upSlope){
-                LogRay(transform.position, Vector3.right * limit, Color.green);
-            }
-        }
-        
-        if(targetPoint + targetPointsDiff < groundPoints.Length){
-            // Check on current ground points
-            if(normalSlope){
-                if(Mathf.Abs(groundPoints[targetPoint].y - groundPoints[targetPoint + targetPointsDiff].y) > limit)
-                    return true;
-            }
-            else if(upSlope){
-                if(Mathf.Abs(groundPoints[targetPoint].x - groundPoints[targetPoint + targetPointsDiff].x) > limit)
-                    return true;
-            }
+        float angleLimit = 0;
+        if(normalSlope) {
+            targetPointsDiff = (int)((velocityMagnitude - minSpeedGrounded) * (float)maxTargetDifferenceNormalSlope / (maxSpeedGrounded - minSpeedGrounded));
+            angleLimit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded)) * maxAngleDifferenceNormalSlope / (maxSpeedGrounded - minSpeedGrounded);
         }
         else{
-            // Check on next ground points
-            targetPointsDiff = targetPoint + targetPointsDiff - groundPoints.Length < groundPointsNext.Length ? targetPoint + targetPointsDiff - groundPoints.Length : groundPointsNext.Length-1; 
-             if(normalSlope){
-                Debug.Log($"Point:<color=green>" + targetPoint + "</color> || Length:<color=red>" + (groundPoints.Length-1) + "</color>");
-                if(Mathf.Abs(groundPoints[targetPoint].y - groundPointsNext[targetPointsDiff].y) > limit)
-                    return true;
-            }
-            else if(upSlope){
-                if(Mathf.Abs(groundPoints[targetPoint].x - groundPointsNext[targetPoint + targetPointsDiff].x) > limit)
-                    return true;
-            }
+            targetPointsDiff = (int)((velocityMagnitude - minSpeedGrounded) * (float)maxTargetDifferenceUpSlope / (maxSpeedGrounded - minSpeedGrounded));
+            angleLimit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded)) * maxAngleDifferenceUpSlope / (maxSpeedGrounded - minSpeedGrounded);
         }
-        
-        
+            
+        Vector2 targetNextDirection = Vector2.zero;
+        if(targetPoint + targetPointsDiff < groundPoints.Length - 1)
+            targetNextDirection =  GetDirection(targetPoint + targetPointsDiff, targetPoint + targetPointsDiff + 1);
+        else
+            targetNextDirection =  GetDirection(targetPoint + targetPointsDiff - 1 , targetPoint + targetPointsDiff);
+        float targetNextAngle = Vector2.Angle(Vector2.up, targetNextDirection);
 
+
+        if(debugGroundSlipping)
+            Debug.Log($"Current angle: <color=blue>" + angleWithGround  + "</color> / Next angle: <color=cyan>" + targetNextAngle 
+                        + "</color> / Slope type: <color=magenta>" + normalSlope 
+                        + "</color>\n Difference: <color=green>" + Mathf.Abs(angleWithGround - targetNextAngle) + "</color> / Angle limit: <color=red>" + angleLimit + "</color>");
+
+        if(Mathf.Abs(angleWithGround - targetNextAngle) > angleLimit)
+            return true;
         return false;
     }
+
     #endregion
 
     #region JUMPING
@@ -456,7 +455,7 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region  LOGGING
+    #region  DEBUGGING
     private void DrawBox(Vector2 position, Vector2 size, Color color)
     {
         if(enableLogging){
@@ -496,6 +495,19 @@ public class PlayerController : MonoBehaviour
                     tagretObjectSecond.transform.position = nextDiff < groundPointsNext.Length ? groundPointsNext[nextDiff] : groundPointsNext[groundPointsNext.Length-1];
                 }
                     
+            }
+        }
+    }
+
+    private void DebugGroundSlipping(float limitGreater, float limitLess){
+        if (debugGroundSlipping){
+            if (normalSlope){
+                LogRay(transform.position, Vector3.down * limitGreater, Color.green);
+                LogRay(transform.position, Vector3.right * limitLess, Color.blue);
+            }
+            else if (upSlope){
+                LogRay(transform.position, Vector3.right * limitGreater, Color.green);
+                LogRay(transform.position, Vector3.up * limitLess, Color.blue);
             }
         }
     }
