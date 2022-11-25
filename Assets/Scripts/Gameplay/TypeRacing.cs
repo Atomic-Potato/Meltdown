@@ -18,17 +18,19 @@ public class TypeRacing : MonoBehaviour{
     }
 
     void Update() {
-        //set the position of the caret at the end if it was changed        
+        Debug.Log("Caret position: " + longInputField.caretPosition + " Length : " + longInputField.text.Length);
+        if(longInputField.caretPosition != longInputField.text.Length)
+            longInputField.caretPosition = longInputField.text.Length;
 
         longInputField.ActivateInputField();
 
         if(Input.GetKeyDown(KeyCode.Backspace)){
             longInputField.text = prevLongText;
-            // Set back the caret position to the end
+            longInputField.caretPosition = longInputField.text.Length;
             return;
         }
 
-        if(longInputField.text.Length == longTargetText.text.Length){
+        if(longInputField.text.Length == longTargetText.text.Length && longInputField.text[longInputField.text.Length-1] == longTargetText.text[longInputField.text.Length-1]){
             // Add to speed
             longDisplayText.text = "";
             longInputField.text = "";
