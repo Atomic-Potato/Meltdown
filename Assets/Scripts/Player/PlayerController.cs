@@ -88,6 +88,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool debugVelocity;
     [SerializeField] bool debugAngleWithGround;
     [SerializeField] bool debugJumpSlope;
+    [SerializeField] bool debugSlopeType;
     [SerializeField] bool debugGroundSlipping;
     [SerializeField] GameObject targetObject;
     [SerializeField] GameObject tagretObjectSecond;
@@ -171,6 +172,7 @@ public class PlayerController : MonoBehaviour
             LogMessage($"Angle with ground: <color=magenta>" + angleWithGround + "</color>");
         }
         DisplayNextPathPoint();
+        DebugSlopeType();
     }
 
     void FixedUpdate() {
@@ -179,7 +181,7 @@ public class PlayerController : MonoBehaviour
             MoveAlongGround();
             if(CheckForGroundSlipping()){
                 if(!leaveGroundCache)
-                    StartCoroutine(LeaveGround(0.075f));
+                    StartCoroutine(LeaveGround(0.1f));
             }
         }
 
@@ -331,7 +333,7 @@ public class PlayerController : MonoBehaviour
                 if(angleWithGround < upSlopeMaxAngle)
                     StartCoroutine(LeaveGround(0.25f)); // Normal slope
                 else
-                    StartCoroutine(LeaveGround(0.1f));
+                    StartCoroutine(LeaveGround(0.075f));
             }
             Jump();
         }
@@ -537,10 +539,29 @@ public class PlayerController : MonoBehaviour
     }
 
     void DebugGroundSlipping(float angleLimit, float angle){
-        if (enableLogging && debugGroundSlipping)
-            Debug.Log($"Current angle: <color=blue>" + angleWithGround + "</color> / Next angle: <color=cyan>" + angle
-                        + "</color> / Slope type: <color=magenta>" + normalSlope
-                        + "</color>\n Difference: <color=green>" + Mathf.Abs(angleWithGround - angle) + "</color> / Angle limit: <color=red>" + angleLimit + "</color>");
+        if (enableLogging && debugGroundSlipping){
+            if(normalSlope){
+                Debug.Log($"Current angle: <color=blue>" + angleWithGround + "</color> / Next angle: <color=cyan>" + angle
+                            + "</color> / Slope type: <color=magenta>Normal slope</color>" 
+                            + "\n Difference: <color=green>" + Mathf.Abs(angleWithGround - angle) + "</color> / Angle limit: <color=red>" + angleLimit + "</color>");
+            }
+            else if(upSlope){
+                Debug.Log($"Current angle: <color=blue>" + angleWithGround + "</color> / Next angle: <color=cyan>" + angle
+                            + "</color> / Slope type: <color=pink>Up Slope slope</color>" 
+                            + "\n Difference: <color=green>" + Mathf.Abs(angleWithGround - angle) + "</color> / Angle limit: <color=red>" + angleLimit + "</color>");
+            }
+        }
+    }
+
+    void DebugSlopeType(){
+        if(enableLogging && debugSlopeType){
+            if(normalSlope)
+                Debug.Log($"<color=red>Normal</color> Slope | Angle: <color=yellow>" + angleWithGround + "</color>");
+            else if(downSlope)
+                Debug.Log($"<color=green>Down</color> Slope | Angle: <color=yellow>" + angleWithGround + "</color>");
+            else if(upSlope)
+                Debug.Log($"<color=blue>Up</color> Slope | Angle: <color=yellow>" + angleWithGround + "</color>");
+        }
     }
     #endregion
 }
