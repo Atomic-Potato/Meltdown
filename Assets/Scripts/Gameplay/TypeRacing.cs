@@ -3,85 +3,184 @@ using TMPro;
 
 public class TypeRacing : MonoBehaviour{
 
-    [SerializeField] int wordLength;
+    [Header("UNDEFINED")]
+    [SerializeField] TMP_InputField nuteralInput;
+    [SerializeField] GameObject nuteralObject;
+
+    [Space]
+    [Header("SHORT WORD")]
+    [SerializeField] int shortWordLength = 2;
+    [SerializeField] int shortMistakesCount = 3;
+    [SerializeField] TMP_Text shortTargetText;
+    [SerializeField] TMP_Text shortDisplayText;
+    [SerializeField] TMP_InputField shortInputField;
+    [SerializeField] TMP_Text shortMistakesText;
+    [SerializeField] GameObject shortObject;
+
+    [Space]
+    [Header("LONG WORD")]
+    [SerializeField] int longWordLength = 5;
     [SerializeField] int longMistakesCount = 3;
     [SerializeField] TMP_Text longTargetText;
     [SerializeField] TMP_Text longDisplayText;
     [SerializeField] TMP_InputField longInputField;
     [SerializeField] TMP_Text longMistakesText;
+    [SerializeField] GameObject longObject;
 
+    int currentType = 0; // 0: pick a type | 1: short word | -1: long word
     int mistakes;
     string prevLongText = "";
+    string prevShortText = "";
     
     void Awake() {
-        mistakes = longMistakesCount;
-        longMistakesText.text = mistakes.ToString();
+        longMistakesText.text = longMistakesCount.ToString();
+        shortMistakesText.text = shortMistakesCount.ToString();
     }
 
     void Start(){
-        longTargetText.text = GenerateWord(wordLength);
+        longTargetText.text = GenerateWord(longWordLength);
+        do{
+            shortTargetText.text = GenerateWord(shortWordLength);
+        }while(shortTargetText.text[0] == longTargetText.text[0]);
     }
 
-    void Update()
-    {
-        longInputField.ActivateInputField();
-        ResetCaretPosition();
-        if(EliminateUncessaryKeys())
+    void Update(){
+
+        if(currentType == 0){
+            nuteralInput.Select();
+            // if(longObject.activeSelf)
+            //     longObject.SetActive(false);
+            // if(shortObject.activeSelf)
+            //     shortObject.SetActive(false);
+
+            if(nuteralInput.text.Length == 0)
+                return;
+            
+            nuteralInput.text = nuteralInput.text.ToUpper();
+
+            if(nuteralInput.text[0] == longTargetText.text[0]){
+                currentType = -1;
+                longDisplayText.text = longTargetText.text[0].ToString();
+                longInputField.text = longTargetText.text[0].ToString();
+                longInputField.caretPosition = longInputField.text.Length;
+            }
+            else if(nuteralInput.text[0] == shortTargetText.text[0]){
+                currentType = 1;
+                shortDisplayText.text = shortTargetText.text[0].ToString();
+                shortInputField.text = shortTargetText.text[0].ToString();
+                shortInputField.caretPosition = shortInputField.text.Length;
+            }
+            
+            nuteralInput.text = "";
+            nuteralInput.caretPosition = 0;
+        }
+
+        if(currentType == -1){
+            UpdateLong();
+        }
+        else if(currentType == 1){
+            UpdateShort();
+        }
+    }
+
+    void UpdateLong(){
+        if(!longObject.activeSelf)
+            longObject.SetActive(true);
+
+        longInputField.Select();
+        ResetCaretPosition(longInputField);
+        if(EliminateUncessaryKeys(longInputField, prevLongText))
             return;
-        CheckForWordEnd();
-        CheckForNewCharacters();
+        CheckForWordEnd(-1, longInputField, longTargetText);
+        prevLongText = CheckForNewCharacters(-1, longInputField, prevLongText, longTargetText, longMistakesText);
 
         if (Input.anyKeyDown){
             longDisplayText.text = longInputField.text;
         }
-
     }
 
-    bool EliminateUncessaryKeys(){
+    void UpdateShort(){
+        if(!shortObject.activeSelf)
+            shortObject.SetActive(true);
+
+        shortInputField.Select();
+        ResetCaretPosition(shortInputField);
+        if(EliminateUncessaryKeys(shortInputField, prevShortText))
+            return;
+        CheckForWordEnd(1, shortInputField, shortTargetText);
+        prevLongText = CheckForNewCharacters(1, shortInputField, prevShortText, shortTargetText, shortMistakesText);
+
+        if (Input.anyKeyDown){
+            shortDisplayText.text = shortInputField.text;
+        }
+    }
+
+    bool EliminateUncessaryKeys(TMP_InputField inputField, string prevText){
         if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.Space)){
-            longInputField.text = prevLongText;
-            longInputField.caretPosition = longInputField.text.Length;
+            inputField.text = prevText;
+            inputField.caretPosition = inputField.text.Length;
             return true;
         }
         return false;
     }
 
-    void ResetCaretPosition(){
-        if (longInputField.caretPosition != longInputField.text.Length)
-            longInputField.caretPosition = longInputField.text.Length;
+    void ResetCaretPosition(TMP_InputField inputField){
+        if (inputField.caretPosition != inputField.text.Length)
+            inputField.caretPosition = inputField.text.Length;
     }
 
-    void CheckForWordEnd(){
-        if (longInputField.text.Length == longTargetText.text.Length && longInputField.text[longInputField.text.Length - 1] == longTargetText.text[longInputField.text.Length - 1]){
+    void CheckForWordEnd(int type, TMP_InputField inputField, TMP_Text target){
+        if (inputField.text.Length == target.text.Length && inputField.text[inputField.text.Length - 1] == target.text[inputField.text.Length - 1]){
             // Add to speed
-            ResetAll();
+            ResetAll(type);
         }
     }
 
-    void CheckForNewCharacters(){
-        if (prevLongText.Length != longInputField.text.Length){
-            longInputField.text = longInputField.text.ToUpper();
-            if (longInputField.text[longInputField.text.Length - 1] != longTargetText.text[longInputField.text.Length - 1]){
+    string CheckForNewCharacters(int type, TMP_InputField inputField, string prevText, TMP_Text target, TMP_Text mistakesText){
+        if (prevText.Length != inputField.text.Length){
+            inputField.text = inputField.text.ToUpper();
+            if (inputField.text[inputField.text.Length - 1] != target.text[inputField.text.Length - 1]){
                 mistakes--;
-                longInputField.text = prevLongText;
-                longMistakesText.text = mistakes.ToString();
+                inputField.text = prevText;
+                mistakesText.text = mistakes.ToString();
 
                 if(mistakes <= 0)
-                    ResetAll();
+                    ResetAll(type);
             }
             else{
-                prevLongText = longInputField.text;
+                return inputField.text;
             }
         }
+
+        return prevText;
     }
 
-    void ResetAll(){
-        mistakes = longMistakesCount;
-        longMistakesText.text = mistakes.ToString();
-        longDisplayText.text = "";
-        longInputField.text = "";
-        prevLongText = "";
-        longTargetText.text = GenerateWord(wordLength);
+    void ResetAll(int type){
+        // -1 for long  | 1 for short
+        if(type == -1){
+            mistakes = longMistakesCount;
+            longMistakesText.text = mistakes.ToString();
+            longDisplayText.text = "";
+            longInputField.text = "";
+            prevLongText = "";
+            do{
+                longTargetText.text = GenerateWord(longWordLength);
+            }while(shortTargetText.text.Length != 0 && longTargetText.text[0] == shortTargetText.text[0]);
+
+            currentType = 0;
+        }
+        else if(type == 1){
+            mistakes = shortMistakesCount;
+            shortMistakesText.text = mistakes.ToString();
+            shortDisplayText.text = "";
+            shortInputField.text = "";
+            prevShortText = "";
+            do{
+                shortTargetText.text = GenerateWord(shortWordLength);
+            }while(longTargetText.text.Length != 0 && shortTargetText.text[0] == longTargetText.text[0]);
+
+            currentType = 0;
+        }
     }
 
     string GenerateWord(int Length){
