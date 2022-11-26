@@ -148,6 +148,9 @@ public class PlayerController : MonoBehaviour
     }
 
     void Update(){
+        if(speed > maxSpeedGrounded)
+            speed = maxSpeedGrounded;
+
         isGrounded = GroundCheck();
 
         if(isGrounded){
@@ -246,7 +249,6 @@ public class PlayerController : MonoBehaviour
 
     void MoveInAir(){
         rigidbody.velocity = new Vector3(CalculateSpeed(rigidbody.velocity.x, minSpeedAir, slowDownRateAir), rigidbody.velocity.y, rigidbody.velocity.z);
-
     }
 
     void UpdateGroundInAir(){
