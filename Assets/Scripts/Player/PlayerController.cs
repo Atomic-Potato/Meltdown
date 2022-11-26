@@ -93,6 +93,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GameObject targetObject;
     [SerializeField] GameObject tagretObjectSecond;
 
+    [HideInInspector] public float speed;
+
     // STATES
     [HideInInspector] public bool isJustJumped;
     [HideInInspector] public bool isJustLanded;
@@ -106,7 +108,6 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region PRIVATE VARIABLES
-    float speed;
     float boost;
     float angleWithGround;
 

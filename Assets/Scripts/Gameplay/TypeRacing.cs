@@ -5,10 +5,14 @@ public class TypeRacing : MonoBehaviour{
 
     [Header("UNDEFINED")]
     [SerializeField] TMP_InputField nuteralInput;
-    [SerializeField] GameObject nuteralObject;
+
+    [Space]
+    [SerializeField] TMP_Text boostText;
+    [SerializeField] GameObject boostObject;
 
     [Space]
     [Header("SHORT WORD")]
+    [SerializeField] float shortWordBoost = 2f;
     [SerializeField] int shortWordLength = 2;
     [SerializeField] int shortMistakesCount = 3;
     [SerializeField] TMP_Text shortTargetText;
@@ -19,6 +23,7 @@ public class TypeRacing : MonoBehaviour{
 
     [Space]
     [Header("LONG WORD")]
+    [SerializeField] float longWordBoost = 8f;
     [SerializeField] int longWordLength = 5;
     [SerializeField] int longMistakesCount = 3;
     [SerializeField] TMP_Text longTargetText;
@@ -30,11 +35,15 @@ public class TypeRacing : MonoBehaviour{
     [Space]
     [Header("REQUIRED COMPONENETS")]
     [SerializeField] PlayerController playerController;
+
+    int boostAmount = 0;
     int currentType = 0; // 0: pick a type | 1: short word | -1: long word
     int mistakes;
     string prevLongText = "";
     string prevShortText = "";
     
+
+
     void Awake() {
         longMistakesText.text = longMistakesCount.ToString();
         shortMistakesText.text = shortMistakesCount.ToString();
@@ -54,6 +63,8 @@ public class TypeRacing : MonoBehaviour{
                 longObject.SetActive(false);
             if(shortObject.activeSelf)
                 shortObject.SetActive(false);
+            if(boostObject.activeSelf)
+                boostObject.SetActive(false);
         }
 
         if(playerController.isJustLeftGround){
@@ -61,9 +72,12 @@ public class TypeRacing : MonoBehaviour{
                 longObject.SetActive(true);
             if(!shortObject.activeSelf)
                 shortObject.SetActive(true);
+            if(!boostObject.activeSelf)
+                boostObject.SetActive(true);
 
             ResetAll(-1);
             ResetAll( 1);
+            ResetBoost();
             currentType = 0;
         }
 
@@ -142,7 +156,15 @@ public class TypeRacing : MonoBehaviour{
 
     void CheckForWordEnd(int type, TMP_InputField inputField, TMP_Text target){
         if (inputField.text.Length == target.text.Length && inputField.text[inputField.text.Length - 1] == target.text[inputField.text.Length - 1]){
-            // Add to speed
+            float boost = 0;
+            if(type == -1)
+                boost = longWordBoost;
+            else if(type == 1)
+                boost = shortWordBoost;
+
+            playerController.speed += boost;
+            boostAmount += (int)boost;
+            boostText.text = $"+" + boostAmount.ToString() + " speed";
             ResetAll(type);
         }
     }
@@ -192,6 +214,11 @@ public class TypeRacing : MonoBehaviour{
 
             currentType = 0;
         }
+    }
+
+    void ResetBoost(){
+        boostAmount = 0;
+        boostText.text = "+0 speed";
     }
 
     string GenerateWord(int Length){
