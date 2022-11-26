@@ -27,6 +27,9 @@ public class TypeRacing : MonoBehaviour{
     [SerializeField] TMP_Text longMistakesText;
     [SerializeField] GameObject longObject;
 
+    [Space]
+    [Header("REQUIRED COMPONENETS")]
+    [SerializeField] PlayerController playerController;
     int currentType = 0; // 0: pick a type | 1: short word | -1: long word
     int mistakes;
     string prevLongText = "";
@@ -45,14 +48,28 @@ public class TypeRacing : MonoBehaviour{
     }
 
     void Update(){
+        
+        if(playerController.isGrounded){
+            if(longObject.activeSelf)
+                longObject.SetActive(false);
+            if(shortObject.activeSelf)
+                shortObject.SetActive(false);
+        }
+
+        if(playerController.isJustLeftGround){
+            if(!longObject.activeSelf)
+                longObject.SetActive(true);
+            if(!shortObject.activeSelf)
+                shortObject.SetActive(true);
+
+            ResetAll(-1);
+            ResetAll( 1);
+            currentType = 0;
+        }
 
         if(currentType == 0){
             nuteralInput.Select();
-            // if(longObject.activeSelf)
-            //     longObject.SetActive(false);
-            // if(shortObject.activeSelf)
-            //     shortObject.SetActive(false);
-
+            
             if(nuteralInput.text.Length == 0)
                 return;
             
@@ -84,9 +101,6 @@ public class TypeRacing : MonoBehaviour{
     }
 
     void UpdateLong(){
-        if(!longObject.activeSelf)
-            longObject.SetActive(true);
-
         longInputField.Select();
         ResetCaretPosition(longInputField);
         if(EliminateUncessaryKeys(longInputField, prevLongText))
@@ -100,9 +114,6 @@ public class TypeRacing : MonoBehaviour{
     }
 
     void UpdateShort(){
-        if(!shortObject.activeSelf)
-            shortObject.SetActive(true);
-
         shortInputField.Select();
         ResetCaretPosition(shortInputField);
         if(EliminateUncessaryKeys(shortInputField, prevShortText))

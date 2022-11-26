@@ -97,6 +97,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public bool isJustJumped;
     [HideInInspector] public bool isJustLanded;
     [HideInInspector] public bool isGrounded;
+    [HideInInspector] public bool isJustLeftGround;
 
     // Other hidden
     [HideInInspector] public Vector2[] groundPoints;
@@ -371,6 +372,8 @@ public class PlayerController : MonoBehaviour
         distanceToGrounded = 0f;
 
         rigidbody.velocity = new Vector3(velocity.x, velocity.y, rigidbody.velocity.z);
+
+        StartCoroutine(PositiveSwitch(_ =>isJustLeftGround = _));
         
         yield return new WaitForSeconds(resetTime);
 
@@ -439,6 +442,11 @@ public class PlayerController : MonoBehaviour
                 return true;
             }
         }
+
+        if(isGrounded){
+            StartCoroutine(PositiveSwitch(_ =>isJustLeftGround = _));
+        }
+
         return false;
     }
 
