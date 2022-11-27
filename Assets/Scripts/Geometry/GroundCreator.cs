@@ -49,19 +49,24 @@ public class GroundCreator : MonoBehaviour{
         //Note: the points that are not first or last 
         //      take the average direction with the one before it and in front
         for(int i=0; i < points.Length; i++){
-            Vector2 forward = Vector2.zero;
-            if(i < points.Length - 1)
-                forward += points[i+1] - points[i];
-            if(i > 0)
-            {
-                forward += points[i] - points[i-1];
-            }
-            forward.Normalize();
+            // NOTE: What you do normally
+            
+            // Vector2 forward = Vector2.zero;
+            // if(i < points.Length - 1)
+            //     forward += points[i+1] - points[i];
+            // if(i > 0)
+            // {
+            //     forward += points[i] - points[i-1];
+            // }
+            // forward.Normalize();
 
             //Adding vertecies
             //Left prependicular forward(-y, x), but we want it to be on the point
             //Right prependicular forward(y, -x)
-            Vector2 right = new Vector2(forward.y, -forward.x);
+            // Vector2 right = new Vector2(forward.y, -forward.x);
+
+            // NOTE: For our purpose i'll have the righ vertecies pointing straight down
+            Vector2 right = Vector2.down;
 
             // In case we're at the last vertex, we extend its length because of a gap that sometimes happen
             verts[vertIndex] = points[i];

@@ -13,10 +13,17 @@ public class ProceduralGeneration : MonoBehaviour
     [SerializeField] GameObject[] groundSections;
     [Tooltip("ALWAYS have the end of the chasm right after the start in the array")]
     [SerializeField] GameObject[] chasms;
-    
+
+    [Space]
+    [Header("ROCKS")]
+    [Tooltip("This is the count of rocks in the entire game")]
+    [SerializeField] int maxRocksCount = 5;
+    [SerializeField] GameObject rockObject;
+
     [Space]
     [Header("REQUIRED COMPONENTS")]
     [SerializeField] GameObject groundConnector;
+    [SerializeField] PlayerController playerController;
 
     [Space]
     [Header("DEBUGGING")]
@@ -26,10 +33,10 @@ public class ProceduralGeneration : MonoBehaviour
     int[] probabilityArray = new int[10];
     int deRenderingIndex;
     Queue<GameObject> groundRenderers = new Queue<GameObject>();
+    Queue<GameObject> rocks = new Queue<GameObject>();
+    GameObject previousGround = null;
 
-    // CACHE
-    bool leaveGroundCache;
-
+    #region EXECUTION
     void Awake() {
         //Filling the probability array
         for(int i=0; i < 10; i++){
@@ -39,17 +46,28 @@ public class ProceduralGeneration : MonoBehaviour
                 probabilityArray[i] = Chasm;
         }
 
-        groundRenderers.Enqueue(new GameObject("NULL"));
-        groundRenderers.Enqueue(new GameObject("NULL"));
+        groundRenderers.Enqueue(null);
+        groundRenderers.Enqueue(null);
+        rocks.Enqueue(null);
+        rocks.Enqueue(null);
 
         deRenderingIndex = renderingCount;
     }
+
+    void Update() {
+        if(playerController.spawnedGroundSections[0] != previousGround){
+            Destroy(rocks.Dequeue());
+            previousGround = playerController.spawnedGroundSections[0];
+        }    
+    }
+
+    #endregion
 
     public int GetRandomGroundType(){
         return probabilityArray[Random.Range(0, 10)];
     }
 
-    
+    #region ADDING SECTIONS
     public GameObject AddGroundSection(GameObject currentGround, GameObject[] ground)
     {
         int sectionNum;
@@ -66,10 +84,12 @@ public class ProceduralGeneration : MonoBehaviour
         MoveSection(sectionPath, currentPath, GetMoveDistance(sectionPath, currentPath));
         RenderPath(sectionPath, currentPath);
 
+        //Spawing rocks
+        // if(Random.Range(0,100) >= 50)
+            SpawnRock(sectionPath.CalculateEvenlySpacedPoints(playerController.groundSpacing));
+
         return groundSections[sectionNum];
     }
-
-    
 
     public GameObject AddLeftChasm(GameObject currentGround, GameObject[] ground){
         int sectionNum;
@@ -149,7 +169,9 @@ public class ProceduralGeneration : MonoBehaviour
             nextPath.ForceMovePoint(i, nextPath[i] + moveDistance);
         }
     }
+    #endregion
 
+    #region RENDERING
     void RenderPath(Path nextPath, Path currentPath){
         deRenderingIndex--;
         if (deRenderingIndex <= 0){
@@ -194,4 +216,16 @@ public class ProceduralGeneration : MonoBehaviour
 
         newRenderer.GetComponent<GroundCreator>().UpdateGround();
     }
+    #endregion
+
+    #region ROCKS
+    void SpawnRock(Vector2[] points){
+        int rockIndex = Random.Range(0, points.Length-1);
+        Vector2 forward = points[rockIndex + 1] - points[rockIndex];
+        Vector2 direction = new Vector2(-forward.y, forward.x);
+        direction.Normalize();
+        float rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        rocks.Enqueue(Instantiate(rockObject, new Vector3(points[rockIndex].x, points[rockIndex].y, rockObject.transform.position.z), Quaternion.Euler(0f, 0f, rotation - 90)));
+    }
+    #endregion
 }

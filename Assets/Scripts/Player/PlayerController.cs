@@ -60,6 +60,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float upSlopeMaxAngle = 45f;
 
     [Space]
+    [Header("ROCKS")]
+    [SerializeField] float rockHitSpeedReduction = 20;
+    [SerializeField] string rocksTag;
+
+    [Space]
     [Header("SYSTEMS")]
     [SerializeField] float gravityScale = 1f;
     [Tooltip("The higher, the more accurate is the movement")]
@@ -76,7 +81,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] ProceduralGeneration proceduralGenerator; 
     //Ground generation
     [SerializeField] GameObject mainGroundObject;
-    GameObject[] spawnedGroundSections = new GameObject[3];
 
     [SerializeField] ProceduralGeneration groundGenerator;
 
@@ -94,6 +98,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GameObject tagretObjectSecond;
 
     [HideInInspector] public float speed;
+    [HideInInspector]public GameObject[] spawnedGroundSections = new GameObject[3];
 
     // STATES
     [HideInInspector] public bool isJustJumped;
@@ -207,6 +212,17 @@ public class PlayerController : MonoBehaviour
             return;
             
         GroundCheck();
+    }
+    #endregion
+
+    #region TRIGGERS
+    private void OnTriggerEnter(Collider other) {
+        if(other.gameObject.CompareTag(rocksTag)){
+            Debug.Log("Reduce Speed");
+            speed -= rockHitSpeedReduction;
+            if(speed < minSpeedGrounded)
+                speed = minSpeedGrounded;
+        }
     }
     #endregion
 
