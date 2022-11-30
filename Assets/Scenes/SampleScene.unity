@@ -20,7 +20,7 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0.37246346, g: 0.44327757, b: 0.5849056, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
@@ -1844,7 +1844,7 @@ GameObject:
   - component: {fileID: 513797029}
   - component: {fileID: 513797030}
   m_Layer: 0
-  m_Name: Directional Light (1)
+  m_Name: Main Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1857,14 +1857,15 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 513797028}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: 1.3050003, y: 0.6869998, z: -0}
+  m_LocalRotation: {x: -0.13602763, y: 0.29763156, z: -0.042889364, w: -0.9439664}
+  m_LocalPosition: {x: 1, y: 1, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1957768119}
   m_Father: {fileID: 863631687}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 16.4, y: 325, z: 0}
 --- !u!108 &513797030
 Light:
   m_ObjectHideFlags: 0
@@ -1877,18 +1878,18 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.7
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
+    m_Bias: 0.025
+    m_NormalBias: 0
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
       e00: 1
@@ -2579,7 +2580,6 @@ Transform:
   m_Children:
   - {fileID: 486321679}
   - {fileID: 257646032}
-  - {fileID: 1957768119}
   - {fileID: 513797029}
   - {fileID: 1996346751}
   m_Father: {fileID: 0}
@@ -5703,7 +5703,7 @@ GameObject:
   - component: {fileID: 1957768119}
   - component: {fileID: 1957768120}
   m_Layer: 0
-  m_Name: Directional Light
+  m_Name: Soft Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5716,14 +5716,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1957768118}
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0.58200073, y: 0.6869998, z: 0}
+  m_LocalRotation: {x: -0, y: 0.67249835, z: -0.218508, w: 0.70710695}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 863631687}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_Father: {fileID: 513797029}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 18, y: 415, z: 0}
 --- !u!108 &1957768120
 Light:
   m_ObjectHideFlags: 0
@@ -5735,8 +5735,8 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Color: {r: 0.7973923, g: 0.9339623, b: 0.9339622, a: 1}
+  m_Intensity: 0.15
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
