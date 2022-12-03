@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Snowboarder_Idle_Coasting
+  m_Name: Snowboarder_Grab_Tail
   serializedVersion: 6
   m_Legacy: 0
   m_Compressed: 0
@@ -19,7 +19,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: 0, y: -44.15, z: 0}
+        value: {x: 0, y: 0, z: 22}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -29,14 +29,14 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/BodyMove/BodyTarget
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
   m_PositionCurves:
   - curve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: 0.37, y: 0.583, z: -0.352}
+        value: {x: 0, y: 0.616, z: -0.5}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -52,7 +52,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: 0.252, y: 0.567, z: 0.355}
+        value: {x: 0.538, y: 0.7675, z: 0.2551}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -68,7 +68,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: 0.589, y: 0.56, z: 0.014191032}
+        value: {x: 0.345, y: 0.411, z: 0.014191032}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -84,7 +84,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: -0.54, y: 0.587, z: -0.294}
+        value: {x: -0.47000122, y: 0.906, z: 0.014191032}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -100,7 +100,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: -0.307, y: 0.638, z: 0.228}
+        value: {x: -0.2999992, y: 0.9000001, z: -0.020000001}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -132,7 +132,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: -0.172, y: 0.3346176, z: -0.24000001}
+        value: {x: -0.11000061, y: 0.3346176, z: -0.24000001}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -164,7 +164,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: 0.138, y: 0.3346176, z: -0.24000001}
+        value: {x: 0.155, y: 0.549, z: -0.24000001}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -180,31 +180,13 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: -0.027, y: -0.087, z: 0}
+        value: {x: 0, y: 0, z: 0}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
         weightedMode: 0
-        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-      - serializedVersion: 3
-        time: 0.5
-        value: {x: -0.051, y: -0.155, z: 0}
-        inSlope: {x: 0, y: 0, z: 0}
-        outSlope: {x: 0, y: 0, z: 0}
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-      - serializedVersion: 3
-        time: 1
-        value: {x: -0.027, y: -0.087, z: 0}
-        inSlope: {x: 0, y: 0, z: 0}
-        outSlope: {x: 0, y: 0, z: 0}
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+        inWeight: {x: 0, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0, y: 0.33333334, z: 0.33333334}
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -214,7 +196,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: 2.6376737e-17, y: 0.5500001, z: 0.283}
+        value: {x: 2.6376737e-17, y: 0.5500001, z: -0.25}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -230,7 +212,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: 2.6376732e-17, y: 0.657, z: -0.056}
+        value: {x: 2.6376732e-17, y: 0.68000007, z: -0.000000029802322}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -241,6 +223,22 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     path: SpinFlipOffset/SnowboarderModel/Stance_Rig/Lean/BodyTarget
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: {x: 0, y: 0.129, z: 0}
+        inSlope: {x: 0, y: 0, z: 0}
+        outSlope: {x: 0, y: 0, z: 0}
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: {x: 0, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0, y: 0.33333334, z: 0.33333334}
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
   m_ScaleCurves: []
   m_FloatCurves:
   - curve:
@@ -324,7 +322,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 1
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -346,13 +344,6 @@ AnimationClip:
     m_Extent: {x: 0, y: 0, z: 0}
   m_ClipBindingConstant:
     genericBindings:
-    - serializedVersion: 2
-      path: SpinFlipOffset/SnowboarderModel/3848809073
-      attribute: 1
-      script: {fileID: 0}
-      typeID: 4
-      customType: 0
-      isPPtrCurve: 0
     - serializedVersion: 2
       path: SpinFlipOffset/SnowboarderModel/3428225183
       attribute: 1
@@ -417,6 +408,13 @@ AnimationClip:
       customType: 0
       isPPtrCurve: 0
     - serializedVersion: 2
+      path: SpinFlipOffset/SnowboarderModel/3848809073
+      attribute: 1
+      script: {fileID: 0}
+      typeID: 4
+      customType: 0
+      isPPtrCurve: 0
+    - serializedVersion: 2
       path: SpinFlipOffset/SnowboarderModel/1465854343
       attribute: 1
       script: {fileID: 0}
@@ -431,7 +429,14 @@ AnimationClip:
       customType: 0
       isPPtrCurve: 0
     - serializedVersion: 2
-      path: SpinFlipOffset/SnowboarderModel/3848809073
+      path: SpinFlipOffset/SnowboarderModel/2368606642
+      attribute: 1
+      script: {fileID: 0}
+      typeID: 4
+      customType: 0
+      isPPtrCurve: 0
+    - serializedVersion: 2
+      path: SpinFlipOffset/SnowboarderModel/2368606642
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -478,7 +483,7 @@ AnimationClip:
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 1
+    m_StopTime: 0
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
@@ -518,7 +523,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.37
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -537,7 +542,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.583
+        value: 0.616
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -556,7 +561,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.352
+        value: -0.5
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -594,7 +599,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.252
+        value: 0.538
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -613,7 +618,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.567
+        value: 0.7675
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -632,7 +637,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.355
+        value: 0.2551
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -651,7 +656,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.589
+        value: 0.345
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -670,7 +675,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.56
+        value: 0.411
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -727,7 +732,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.54
+        value: -0.47000122
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -746,7 +751,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.587
+        value: 0.906
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -765,7 +770,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.294
+        value: 0.014191032
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -784,7 +789,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.307
+        value: -0.2999992
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -803,7 +808,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.638
+        value: 0.9000001
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -822,7 +827,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.228
+        value: -0.020000001
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -917,7 +922,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.172
+        value: -0.11000061
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1031,7 +1036,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.138
+        value: 0.155
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1050,7 +1055,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.3346176
+        value: 0.549
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1088,31 +1093,13 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.027
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
         weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.5
-        value: -0.051
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: -0.027
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -1125,31 +1112,13 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.087
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
         weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.5
-        value: -0.155
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: -0.087
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -1167,26 +1136,8 @@ AnimationClip:
         outSlope: 0
         tangentMode: 136
         weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 0.5
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -1237,7 +1188,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.283
+        value: -0.25
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1275,7 +1226,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.657
+        value: 0.68000007
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1294,7 +1245,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -0.056
+        value: -0.000000029802322
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1313,7 +1264,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 1
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1342,8 +1293,8 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: localEulerAnglesRaw.x
-    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/BodyMove/BodyTarget
+    attribute: m_LocalPosition.x
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
     classID: 4
     script: {fileID: 0}
   - curve:
@@ -1351,7 +1302,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -44.15
+        value: 0.129
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1361,8 +1312,8 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: localEulerAnglesRaw.y
-    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/BodyMove/BodyTarget
+    attribute: m_LocalPosition.y
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
     classID: 4
     script: {fileID: 0}
   - curve:
@@ -1380,8 +1331,65 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
+    attribute: m_LocalPosition.z
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
+    classID: 4
+    script: {fileID: 0}
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: localEulerAnglesRaw.x
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
+    classID: 4
+    script: {fileID: 0}
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: localEulerAnglesRaw.y
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
+    classID: 4
+    script: {fileID: 0}
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 22
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/BodyMove/BodyTarget
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
     classID: 4
     script: {fileID: 0}
   m_EulerEditorCurves:
@@ -1392,7 +1400,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/BodyMove/BodyTarget
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
     classID: 4
     script: {fileID: 0}
   - curve:
@@ -1402,7 +1410,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/BodyMove/BodyTarget
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
     classID: 4
     script: {fileID: 0}
   - curve:
@@ -1412,7 +1420,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/BodyMove/BodyTarget
+    path: SpinFlipOffset/SnowboarderModel/Stance_Rig/SnowboardMove/SnowboardTarget
     classID: 4
     script: {fileID: 0}
   m_HasGenericRootTransform: 0
