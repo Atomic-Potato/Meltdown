@@ -199,7 +199,7 @@ public class PlayerController : MonoBehaviour
             Physicsf.ApplyGravity(rigidbody, gravityScale);   
 
         if(!isGrounded){
-            if(!applyGravity){
+            if(!applyGravity && rigidbody.velocity.y > 0 ){
                 applyGravity = true;
             }
             MoveInAir();
@@ -361,7 +361,11 @@ public class PlayerController : MonoBehaviour
 
     void Jump(){
         if(downSlope){
+            applyGravity = false;
             rigidbody.velocity = new Vector3(rigidbody.velocity.x + downSlopeJumpForce, rigidbody.velocity.y, rigidbody.velocity.z);
+            
+            // rigidbody.AddForce(Vector3.right * downSlopeJumpForce, ForceMode.Impulse);
+            Debug.Log("$<color=magenta>JUMPED RIGHT</color>");
             if(debugJumpSlope)
                 LogMessage($"Jump slope: <color=red>Down Slope</color>");
         }

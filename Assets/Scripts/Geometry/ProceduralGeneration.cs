@@ -16,6 +16,8 @@ public class ProceduralGeneration : MonoBehaviour
 
     [Space]
     [Header("ROCKS")]
+    [SerializeField] bool spawnRocks;
+    [Space]
     [Tooltip("This is the count of rocks in the entire game")]
     [SerializeField] int maxRocksCount = 5;
     [SerializeField] GameObject rockObject;
@@ -86,8 +88,11 @@ public class ProceduralGeneration : MonoBehaviour
 
         //Spawing rocks
         // if(Random.Range(0,100) >= 50)
+        if(spawnRocks)
             SpawnRock(sectionPath.CalculateEvenlySpacedPoints(playerController.groundSpacing));
-
+        else
+            rocks.Enqueue(null);
+            
         return groundSections[sectionNum];
     }
 
@@ -110,6 +115,8 @@ public class ProceduralGeneration : MonoBehaviour
         
         MoveSection(sectionPath, currentPath, GetMoveDistance(sectionPath, currentPath));
         RenderPath(sectionPath, currentPath);
+        
+        rocks.Enqueue(null);
 
         return chasms[sectionNum];
     }
@@ -135,6 +142,7 @@ public class ProceduralGeneration : MonoBehaviour
         //RenderPath(sectionPath, currentPath);
         RenderSection(sectionPath);
 
+        rocks.Enqueue(null);
         return chasms[sectionNum];
     }
 
