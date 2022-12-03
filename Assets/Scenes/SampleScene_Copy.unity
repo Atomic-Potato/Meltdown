@@ -935,7 +935,7 @@ Canvas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 161518991}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_RenderMode: 0
   m_Camera: {fileID: 0}
@@ -1980,7 +1980,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 20
+  field of view: 10
   orthographic: 0
   orthographic size: 24.52
   m_Depth: -1
@@ -3243,42 +3243,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 863631687}
     m_Modifications:
-    - target: {fileID: 1618385893, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 2131190690, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.68000007
-      objectReference: {fileID: 0}
-    - target: {fileID: 2131190690, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.000000029802322
-      objectReference: {fileID: 0}
-    - target: {fileID: 2131190690, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: -1.9807087e-16
-      objectReference: {fileID: 0}
-    - target: {fileID: 2131190690, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 2.0254323e-16
-      objectReference: {fileID: 0}
-    - target: {fileID: 2131190690, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 2131190690, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 2131190690, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 2131190690, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: -180
-      objectReference: {fileID: 0}
     - target: {fileID: 1070725996940448297, guid: 2f640964c839649358284b8310d09e50, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -3326,30 +3290,6 @@ PrefabInstance:
     - target: {fileID: 4155444642365868537, guid: 2f640964c839649358284b8310d09e50, type: 3}
       propertyPath: m_Name
       value: Snowboarder
-      objectReference: {fileID: 0}
-    - target: {fileID: 6639487384384219401, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6639487384384219401, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6639487384384219401, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6639487384384219401, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6639487384384219401, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6639487384384219401, guid: 2f640964c839649358284b8310d09e50, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2f640964c839649358284b8310d09e50, type: 3}
