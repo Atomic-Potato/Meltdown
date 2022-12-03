@@ -70,3 +70,9 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Ignore MacOS meta files
+*.DS_Store
+
+# Ignore Substance Painter autosaves
+*_autosave_[0-9]*.spp
