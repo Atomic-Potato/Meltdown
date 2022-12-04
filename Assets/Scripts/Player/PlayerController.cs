@@ -199,7 +199,7 @@ public class PlayerController : MonoBehaviour
             Physicsf.ApplyGravity(rigidbody, gravityScale);   
 
         if(!isGrounded){
-            if(!applyGravity && rigidbody.velocity.y > 0 ){
+            if(!applyGravity){
                 applyGravity = true;
             }
             MoveInAir();
