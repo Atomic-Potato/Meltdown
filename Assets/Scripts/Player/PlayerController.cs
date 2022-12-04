@@ -244,39 +244,27 @@ public class PlayerController : MonoBehaviour
             transform.position = groundPoints[targetPoint];
         }
 
-        // speed = CalculateSpeed(speed, minSpeedGrounded, slowDownRateGrounded);
-        // if(speed > maxSpeedGrounded)
-        //     speed = maxSpeedGrounded;
         direction = GetDirection(targetPoint, targetPoint+1);
-        // transform.rotation = RotateInDirection(direction);
-        // transform.position += (Vector3)direction * speed * Time.deltaTime;
 
         direction.Normalize();
         Vector2 normalForce = new Vector2(-direction.y, direction.x) * Mathf.Abs(Physicsf.globalGravity * gravityScale);
-
         Vector2 netForce = (normalForce + new Vector2(0, Physicsf.globalGravity * gravityScale))/2f;
+        float netMagnitude = netForce.magnitude;
         
         LogRay(transform.position, netForce, Color.blue);
         LogRay(transform.position, normalForce, Color.magenta);
         LogRay(transform.position, new Vector3(0f, Physicsf.globalGravity * gravityScale, 0f), Color.red);
         
-
-        float netMagnitude = netForce.magnitude;
         if(netForce.x < 0)
             speed -= netMagnitude * Time.deltaTime;
         else
             speed += netMagnitude * Time.deltaTime;
 
-        Debug.Log("Speed : " + speed + " Magnitude: " + netMagnitude);
-
         // Go backwards
         if(speed < 0){
-            transform.rotation = RotateInDirection(direction);
             direction = GetDirection(targetPoint, targetPoint-1);
-            LogRay(transform.position, direction, Color.green);
-
+            transform.rotation = RotateInDirection(direction);
             transform.position += (Vector3)(direction * (-speed) * Time.deltaTime); 
-
             if(targetPoint > 0 && transform.position.x < groundPoints[targetPoint].x){
                 SetTargetToNearstBackPoint();
                 if(targetPoint > 0){
@@ -287,10 +275,8 @@ public class PlayerController : MonoBehaviour
             }
         }
         else{ // Go forward
-            LogRay(transform.position, direction, Color.green);
             transform.rotation = RotateInDirection(direction);
             transform.position += (Vector3)(direction * speed * Time.deltaTime); 
-
             // NOTE: We calculate the velocity here to ignore when the position is hard set later down in the if statement
             // ClaculateGroundedVelocity(transform.position - (Vector3)direction * speed * Time.deltaTime, transform.position);
 
@@ -336,7 +322,16 @@ public class PlayerController : MonoBehaviour
 
     Quaternion RotateInDirection(Vector2 dir){
         float rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        return Quaternion.Euler( 0f, 0f, rotation);
+        if(direction.x < 0 ){
+            if(transform.localScale.x > 0 )
+                transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
+            return Quaternion.Euler( 0f, 0f, rotation + 180);
+        }
+        else{
+            if(transform.localScale.x < 0 )
+                transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
+            return Quaternion.Euler( 0f, 0f, rotation);
+        }
     }
     #endregion
 
