@@ -153,8 +153,8 @@ public class PlayerController : MonoBehaviour
     }
 
     void Update(){
-        if(speed > maxSpeedGrounded)
-            speed = maxSpeedGrounded;
+        // if(speed > maxSpeedGrounded)
+        //     speed = maxSpeedGrounded;
 
         isGrounded = GroundCheck();
 
@@ -164,6 +164,7 @@ public class PlayerController : MonoBehaviour
         else{
             UpdateGroundInAir();
             LimitFallingVelocity();
+            speed = rigidbody.velocity.magnitude;
         }
 
         //Debugging
@@ -243,25 +244,67 @@ public class PlayerController : MonoBehaviour
             transform.position = groundPoints[targetPoint];
         }
 
-        speed = CalculateSpeed(speed, minSpeedGrounded, slowDownRateGrounded);
-        if(speed > maxSpeedGrounded)
-            speed = maxSpeedGrounded;
+        // speed = CalculateSpeed(speed, minSpeedGrounded, slowDownRateGrounded);
+        // if(speed > maxSpeedGrounded)
+        //     speed = maxSpeedGrounded;
         direction = GetDirection(targetPoint, targetPoint+1);
-        transform.rotation = RotateInDirection(direction);
-        transform.position += (Vector3)direction * speed * Time.deltaTime;
+        // transform.rotation = RotateInDirection(direction);
+        // transform.position += (Vector3)direction * speed * Time.deltaTime;
 
-        // NOTE: We calculate the velocity here to ignore when the position is hard set later down in the if statement
-        ClaculateGroundedVelocity(transform.position - (Vector3)direction * speed * Time.deltaTime, transform.position);
+        direction.Normalize();
+        Vector2 normalForce = new Vector2(-direction.y, direction.x) * Mathf.Abs(Physicsf.globalGravity * gravityScale);
 
-        if(targetPoint < groundPoints.Length-1 && transform.position.x > groundPoints[targetPoint].x){
-            SetTargetToNearstFrontPoint();
-            if(targetPoint < groundPoints.Length){
-                transform.position = groundPoints[targetPoint-1];
-                if(targetPoint < groundPoints.Length-1)
-                    targetPoint++;
+        Vector2 netForce = (normalForce + new Vector2(0, Physicsf.globalGravity * gravityScale))/2f;
+        
+        LogRay(transform.position, netForce, Color.blue);
+        LogRay(transform.position, normalForce, Color.magenta);
+        LogRay(transform.position, new Vector3(0f, Physicsf.globalGravity * gravityScale, 0f), Color.red);
+        
+
+        float netMagnitude = netForce.magnitude;
+        if(netForce.x < 0)
+            speed -= netMagnitude * Time.deltaTime;
+        else
+            speed += netMagnitude * Time.deltaTime;
+
+        Debug.Log("Speed : " + speed + " Magnitude: " + netMagnitude);
+
+        // Go backwards
+        if(speed < 0){
+            transform.rotation = RotateInDirection(direction);
+            direction = GetDirection(targetPoint, targetPoint-1);
+            LogRay(transform.position, direction, Color.green);
+
+            transform.position += (Vector3)(direction * (-speed) * Time.deltaTime); 
+
+            if(targetPoint > 0 && transform.position.x < groundPoints[targetPoint].x){
+                SetTargetToNearstBackPoint();
+                if(targetPoint > 0){
+                    transform.position = groundPoints[targetPoint+1];
+                    if(targetPoint > 0)
+                        targetPoint--;
+                }
+            }
+        }
+        else{ // Go forward
+            LogRay(transform.position, direction, Color.green);
+            transform.rotation = RotateInDirection(direction);
+            transform.position += (Vector3)(direction * speed * Time.deltaTime); 
+
+            // NOTE: We calculate the velocity here to ignore when the position is hard set later down in the if statement
+            // ClaculateGroundedVelocity(transform.position - (Vector3)direction * speed * Time.deltaTime, transform.position);
+
+            if(targetPoint < groundPoints.Length-1 && transform.position.x > groundPoints[targetPoint].x){
+                SetTargetToNearstFrontPoint();
+                if(targetPoint < groundPoints.Length){
+                    transform.position = groundPoints[targetPoint-1];
+                    if(targetPoint < groundPoints.Length-1)
+                        targetPoint++;
+                }
             }
         }
     }
+
 
     void MoveInAir(){
         rigidbody.velocity = new Vector3(CalculateSpeed(rigidbody.velocity.x, minSpeedAir, slowDownRateAir), rigidbody.velocity.y, rigidbody.velocity.z);
@@ -405,9 +448,14 @@ public class PlayerController : MonoBehaviour
         leaveGroundCache = false;
     }
 
-    public void SetTargetToNearstFrontPoint(){
+    void SetTargetToNearstFrontPoint(){
         while(targetPoint < groundPoints.Length-1 && groundPoints[targetPoint].x < transform.position.x)
             targetPoint++;
+    }
+
+    void SetTargetToNearstBackPoint(){
+        while(targetPoint > 0 && groundPoints[targetPoint].x > transform.position.x)
+            targetPoint--;
     }
 
     void ClaculateGroundedVelocity(){
