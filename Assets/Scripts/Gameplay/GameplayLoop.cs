@@ -1,12 +1,20 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameplayLoop : MonoBehaviour
 {
     [SerializeField] int distanceToWin  = 1000;
 
+    [Space]
     [SerializeField] Transform startTransform;
     [SerializeField] Transform playerTransform;
     
+    [Space]
+    [SerializeField] string sceneName;
+    
+    [Space]
+    [SerializeField] UserInterfaceManager uiManager;
+
 
     [HideInInspector] public float timer = 20f;
     [HideInInspector] public int currentDistance = 0;
@@ -21,10 +29,14 @@ public class GameplayLoop : MonoBehaviour
         }
 
         if(currentDistance > distanceToWin && timer > 0){
-            Debug.Log("You Win");
+            uiManager.DisplayWinScreen();
         }
         else if(timer <= 0) {
-            Debug.Log("You Loose!");
+            uiManager.DisplayLooseScreen();
         }   
+    }
+
+    public void RestartGame(){
+        SceneManager.LoadScene(sceneName);
     }
 }
