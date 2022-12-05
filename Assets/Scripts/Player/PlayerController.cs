@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float maxSpeed = 30f;
     [SerializeField] float maxExtriorForcesMagnitude = 125f;
     [Space]
-    [Range(0f, 2.5f)]
+    [Range(0f, 20f)]
     [SerializeField] float slowDownRateAir = 0.25f;
     [Range(0f, 2.5f)]
     [SerializeField] float slowDownRateGrounded = 0.25f;
@@ -51,7 +51,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float jumpForce = 15f;
     [Space]
     [Tooltip("The jump force when goind down a slope. (Note that the player jumps to the right instead of up)")]
-    [SerializeField] float downSlopeJumpForce = 30f; 
+    [SerializeField] Vector2 downSlopeJumpForce; 
     [Range(90f, 180f)]
     [SerializeField] float downSlopeMinAngle = 125f;
     [Space]
@@ -155,24 +155,15 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // LIMITS
-        if (isGrounded)
-        {
-            if (speed > maxSpeed)
-                speed = maxSpeed;
-            if (speed < minSpeed)
-                speed = minSpeed;
-        }
 
+        ApplyDragAndFriction();
         UpdateGroundTracker();
         GroundCheck();
 
-        if (isGrounded)
-        {
+        if (isGrounded){
             angleWithGround = Vector2.Angle(Vector2.up, direction);
         }
-        else
-        {
+        else{
             UpdateGroundInAir();
             LimitFallingVelocity();
             speed = rigidbody.velocity.magnitude;
@@ -182,10 +173,13 @@ public class PlayerController : MonoBehaviour
         if (debugGrounded)
             LogMessage("Grounded : " + isGrounded);
         if (debugVelocity){
-            LogMessage($"Velocity magnitude : <color=cyan>" + velocity.magnitude + "</color>\nVelocity vector : <color=cyan>" + velocity + "</color>");
+            if(isGrounded)
+                LogMessage($"Velocity magnitude : <color=cyan>" + speed + "</color>\nVelocity vector : <color=cyan>" + direction * speed + "</color>");
+            else
+                LogMessage($"Velocity magnitude : <color=cyan>" + velocity.magnitude + "</color>\nVelocity vector : <color=cyan>" + velocity + "</color>");
+
         }
-        if (debugAngleWithGround)
-        {
+        if (debugAngleWithGround){
             if (isGrounded)
                 LogMessage($"Angle with ground: <color=magenta>" + angleWithGround + "</color>");
         }
@@ -193,8 +187,22 @@ public class PlayerController : MonoBehaviour
         DebugSlopeType();
     }
 
-    private void UpdateGroundTracker()
-    {
+    void ApplyDragAndFriction(){
+        if(!isGrounded){
+            if(velocity.x > minSpeedAir)
+                velocity.x -= slowDownRateAir * Time.deltaTime;
+            else
+                velocity.x = minSpeedAir;
+        }
+        else{
+            if(speed > minSpeed && speed > maxExtriorForcesMagnitude)
+                speed -= slowDownRateGrounded * Time.deltaTime;
+            else if (speed < minSpeed)
+                speed = minSpeed; 
+        }
+    }
+
+    void UpdateGroundTracker(){
         if(!isGrounded){
             if (targetPoint >= 0 && targetPoint < groundPoints.Length){
                 if (transform.position.x > groundPoints[targetPoint].x)
@@ -294,6 +302,8 @@ public class PlayerController : MonoBehaviour
         LogRay(transform.position, normalForce, Color.magenta);
         LogRay(transform.position, new Vector3(0f, Physicsf.globalGravity * gravityScale, 0f), Color.red);
 
+        // Debug.Log($"<color=cyan>Velocity " + (speed * direction) + "</color>");
+
         if(netForce.x < 0){
             speed -= netMagnitude * Time.deltaTime;
         }
@@ -302,8 +312,6 @@ public class PlayerController : MonoBehaviour
             if(speed > maxExtriorForcesMagnitude)
                 speed = maxExtriorForcesMagnitude;
         }
-
-        // Debug.Log("Speed " + speed+ " mag " + netMagnitude);
 
         // Go backwards
         if(speed < 0){
@@ -437,9 +445,7 @@ public class PlayerController : MonoBehaviour
 
     void Jump(){
         if(downSlope){
-            Debug.Log("Velocity" + velocity.x + " force " + downSlopeJumpForce);
-            velocity = new Vector2(velocity.x + downSlopeJumpForce, velocity.y);
-            Debug.Log("New velocity " + velocity);
+            velocity = new Vector2(velocity.x + downSlopeJumpForce.x, velocity.y + downSlopeJumpForce.y);
             if(debugJumpSlope)
                 LogMessage($"Jump slope: <color=red>Down Slope</color>");
         }
@@ -469,13 +475,7 @@ public class PlayerController : MonoBehaviour
         applyGravity = true;
         distanceToGrounded = 0f;
 
-        // float angle = Vector2.Angle(direction, Vector2.right);
-        // velocity = new Vector2(Mathf.Sign(direction.x) * Mathf.Abs(speed * Mathf.Cos(angle)), Mathf.Sign(direction.y) * Mathf.Abs(speed * Mathf.Sin(angle)));
-        // Debug.Log($"<color=cyan>leave ground velocity " + velocity + " angle " + angle + "</color>");
-
         velocity = direction.normalized * speed;
-        Debug.Log($"<color=cyan>leave ground velocity " + velocity + "</color>");
-
 
         StartCoroutine(PositiveSwitch(_ =>isJustLeftGround = _));
         
