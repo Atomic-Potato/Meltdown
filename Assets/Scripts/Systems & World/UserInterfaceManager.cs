@@ -12,7 +12,9 @@ public class UserInterfaceManager : MonoBehaviour
     [SerializeField] PlayerController playerController;
 
     [Space]
-    [SerializeField] GameObject gameUI;
+    public GameObject startScreen;
+    [SerializeField] GameObject tutorialScreen;
+    public GameObject gameUI;
     [SerializeField] GameObject looseScreen;
     [SerializeField] GameObject winScreen;
 
@@ -20,6 +22,20 @@ public class UserInterfaceManager : MonoBehaviour
         distanceText.text = gameplayLoop.currentDistance + "m";
         speedText.text = playerController.isGrounded ? (int)PlayerController.speed + "m/s" : (int)PlayerController.velocity.magnitude + "m/s";
         timerText.text = ((int)gameplayLoop.timer).ToString();
+    }
+
+    public void DisplayTutorialScreen(){
+        if(!tutorialScreen.activeSelf){
+            tutorialScreen.SetActive(true);
+            startScreen.SetActive(false);
+        }
+    }
+
+    public void DisplayStartScreen(){
+        if(!startScreen.activeSelf){
+            tutorialScreen.SetActive(false);
+            startScreen.SetActive(true);
+        }
     }
 
     public void DisplayLooseScreen(){
