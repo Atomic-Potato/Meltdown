@@ -2511,6 +2511,7 @@ MonoBehaviour:
   isJustLanded: 0
   isGrounded: 0
   isJustLeftGround: 0
+  boost: 0
   groundPoints: []
   targetPoint: 0
 --- !u!54 &863631689
@@ -4247,7 +4248,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b402615e1a80a464496388b5be8d2f59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundGenerationBias: 10
+  groundGenerationBias: 5
   chasmsWidth: 30
   chasmsHeight: -20
   renderingCount: 3
