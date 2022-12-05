@@ -204,11 +204,15 @@ public class PlayerController : MonoBehaviour
 
     void UpdateGroundTracker(){
         if(!isGrounded){
+                if(targetTracker >= groundPoints.Length)
+                    targetTracker = 0;
                 targetTracker = transform.position.x > groundPoints[targetTracker].x ? GetNearstFrontPoint(targetTracker) : GetNearstBackPoint(targetTracker);
                 groundTracker.position = groundPoints[targetTracker];
         }
-        else
-            groundTracker.position = groundPoints[targetPoint];
+        else{
+            targetTracker = targetPoint;
+            groundTracker.position = groundPoints[targetTracker];
+        }
     }
 
     void FixedUpdate() {
