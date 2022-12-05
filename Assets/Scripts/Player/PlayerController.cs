@@ -11,8 +11,9 @@ public class PlayerController : MonoBehaviour
     [Header("SLIDING")]
     [SerializeField] float initialBoost = 25f;
     [SerializeField] float minSpeedAir = 17f;
-    [SerializeField] float minSpeedGrounded = 17f;
-    [SerializeField] float maxSpeedGrounded = 125f;
+    [SerializeField] float minSpeed = 17f;
+    [SerializeField] float maxSpeed = 30f;
+    [SerializeField] float maxExtriorForcesMagnitude = 125f;
     [Space]
     [Range(0f, 2.5f)]
     [SerializeField] float slowDownRateAir = 0.25f;
@@ -82,8 +83,6 @@ public class PlayerController : MonoBehaviour
     //Ground generation
     [SerializeField] GameObject mainGroundObject;
 
-    [SerializeField] ProceduralGeneration groundGenerator;
-
     [Space]
     [Header("DEBUGGING")]
     [SerializeField] bool enableLogging;
@@ -94,11 +93,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool debugJumpSlope;
     [SerializeField] bool debugSlopeType;
     [SerializeField] bool debugGroundSlipping;
+    [SerializeField] Transform groundTracker;
     [SerializeField] GameObject targetObject;
     [SerializeField] GameObject tagretObjectSecond;
 
-    [HideInInspector] public float speed;
-    [HideInInspector]public GameObject[] spawnedGroundSections = new GameObject[3];
+    public static Vector2 velocity = Vector2.zero;
+    public static float speed;
+    [HideInInspector] public GameObject[] spawnedGroundSections = new GameObject[3];
 
     // STATES
     [HideInInspector] public bool isJustJumped;
@@ -117,6 +118,7 @@ public class PlayerController : MonoBehaviour
     float angleWithGround;
 
     int targetPointsDiff; // How many points between the 2 targets
+    int targetTracker; 
 
     bool chamsChosen;
     bool applyGravity = true;
@@ -126,7 +128,7 @@ public class PlayerController : MonoBehaviour
     bool upSlope;
     
     float velocityMagnitude = 0f; 
-    Vector2 velocity = Vector2.zero;
+    float? prevNetMagnitude = null;
     
     Vector2 direction = Vector2.right;
     Vector2 prevPosition = Vector2.zero;
@@ -141,7 +143,6 @@ public class PlayerController : MonoBehaviour
         boost = initialBoost;
         speed = boost;
         velocity = direction * speed;
-        rigidbody.velocity = velocity;
 
 
         spawnedGroundSections[0] = null;
@@ -152,16 +153,26 @@ public class PlayerController : MonoBehaviour
         groundPointsNext = spawnedGroundSections[2].GetComponent<PathCreator>().path.CalculateEvenlySpacedPoints(groundSpacing);
     }
 
-    void Update(){
-        // if(speed > maxSpeedGrounded)
-        //     speed = maxSpeedGrounded;
+    void Update()
+    {
+        // LIMITS
+        if (isGrounded)
+        {
+            if (speed > maxSpeed)
+                speed = maxSpeed;
+            if (speed < minSpeed)
+                speed = minSpeed;
+        }
 
-        isGrounded = GroundCheck();
+        UpdateGroundTracker();
+        GroundCheck();
 
-        if(isGrounded){
+        if (isGrounded)
+        {
             angleWithGround = Vector2.Angle(Vector2.up, direction);
         }
-        else{
+        else
+        {
             UpdateGroundInAir();
             LimitFallingVelocity();
             speed = rigidbody.velocity.magnitude;
@@ -170,40 +181,65 @@ public class PlayerController : MonoBehaviour
         //Debugging
         if (debugGrounded)
             LogMessage("Grounded : " + isGrounded);
-        if(debugVelocity){
-            if(isGrounded)
-                LogMessage($"<color=brown>[GROUND]</color> Velocity magnitude : " + velocityMagnitude + "\nVelocity vector : " + velocity);
-            else{
-                float rbVelMagnitude = Mathf.Sqrt(Mathf.Pow(rigidbody.velocity.x,2) + Mathf.Pow(rigidbody.velocity.y,2));
-                LogMessage($"<color=cyan>[AIR]</color> Velocity magnitude : " + rbVelMagnitude + "\nVelocity vector : " + rigidbody.velocity);
-            }
+        if (debugVelocity){
+            LogMessage($"Velocity magnitude : <color=cyan>" + velocity.magnitude + "</color>\nVelocity vector : <color=cyan>" + velocity + "</color>");
         }
-        if(debugAngleWithGround){
-            if(isGrounded)
-            LogMessage($"Angle with ground: <color=magenta>" + angleWithGround + "</color>");
+        if (debugAngleWithGround)
+        {
+            if (isGrounded)
+                LogMessage($"Angle with ground: <color=magenta>" + angleWithGround + "</color>");
         }
         DisplayNextPathPoint();
         DebugSlopeType();
     }
 
+    private void UpdateGroundTracker()
+    {
+        if(!isGrounded){
+            if (targetPoint >= 0 && targetPoint < groundPoints.Length){
+                if (transform.position.x > groundPoints[targetPoint].x)
+                    targetTracker = GetNearstFrontPoint(targetPoint);
+                else
+                    targetTracker = GetNearstBackPoint(targetPoint);
+                // if(transform.position.y < groundPoints[targetPoint].y)
+                //     transform.position = new Vector3(transform.position.x, groundPoints[targetPoint].y ,transform.position.z);
+                groundTracker.position = groundPoints[targetTracker];
+            }
+        }
+        else
+            groundTracker.position = groundPoints[targetPoint];
+    }
+
     void FixedUpdate() {
+
         if(isGrounded){
             UpdateSlopeGeneralDirection();
             MoveAlongGround();
             if(CheckForGroundSlipping()){
-                if(!leaveGroundCache)
+                if(!leaveGroundCache){
+                    Debug.Log($"<color=red>ground slipping leave ground</color>");
+
                     StartCoroutine(LeaveGround(0.1f));
+                }
             }
         }
-
-        if(applyGravity)
-            Physicsf.ApplyGravity(rigidbody, gravityScale);   
 
         if(!isGrounded){
             if(!applyGravity){
                 applyGravity = true;
             }
-            MoveInAir();
+            if(applyGravity){
+                velocity =  Physicsf.ApplyGravity(velocity, gravityScale);   
+            }
+
+            if(velocity.y < maxFallingVelocity)
+                velocity.y = maxFallingVelocity;
+            if(velocity.x < minSpeedAir)
+                velocity.x = minSpeedAir;
+                
+            speed = velocity.magnitude;
+
+            transform.position += (Vector3)velocity * Time.deltaTime;
         } 
     }
 
@@ -221,8 +257,8 @@ public class PlayerController : MonoBehaviour
         if(other.gameObject.CompareTag(rocksTag)){
             Debug.Log("Reduce Speed");
             speed -= rockHitSpeedReduction;
-            if(speed < minSpeedGrounded)
-                speed = minSpeedGrounded;
+            if(speed < minSpeed)
+                speed = minSpeed;
         }
     }
     #endregion
@@ -231,8 +267,9 @@ public class PlayerController : MonoBehaviour
     void MoveAlongGround(){
         if(targetPoint >= groundPoints.Length-1){
             if(Vector2.Distance(transform.position, spawnedGroundSections[2].GetComponent<PathCreator>().path[0]) > 1f){
-                if(!leaveGroundCache)
+                if(!leaveGroundCache){
                     StartCoroutine(LeaveGround(0.2f));
+                }
                 return;
             }
             UpdateGroundPoints();
@@ -250,15 +287,23 @@ public class PlayerController : MonoBehaviour
         Vector2 normalForce = new Vector2(-direction.y, direction.x) * Mathf.Abs(Physicsf.globalGravity * gravityScale);
         Vector2 netForce = (normalForce + new Vector2(0, Physicsf.globalGravity * gravityScale))/2f;
         float netMagnitude = netForce.magnitude;
-        
+        if(netMagnitude > maxExtriorForcesMagnitude)
+            netMagnitude = maxExtriorForcesMagnitude;
+
         LogRay(transform.position, netForce, Color.blue);
         LogRay(transform.position, normalForce, Color.magenta);
         LogRay(transform.position, new Vector3(0f, Physicsf.globalGravity * gravityScale, 0f), Color.red);
-        
-        if(netForce.x < 0)
+
+        if(netForce.x < 0){
             speed -= netMagnitude * Time.deltaTime;
-        else
+        }
+        else if(speed < maxExtriorForcesMagnitude){
             speed += netMagnitude * Time.deltaTime;
+            if(speed > maxExtriorForcesMagnitude)
+                speed = maxExtriorForcesMagnitude;
+        }
+
+        // Debug.Log("Speed " + speed+ " mag " + netMagnitude);
 
         // Go backwards
         if(speed < 0){
@@ -266,7 +311,7 @@ public class PlayerController : MonoBehaviour
             transform.rotation = RotateInDirection(direction);
             transform.position += (Vector3)(direction * (-speed) * Time.deltaTime); 
             if(targetPoint > 0 && transform.position.x < groundPoints[targetPoint].x){
-                SetTargetToNearstBackPoint();
+                targetPoint = GetNearstBackPoint(targetPoint);
                 if(targetPoint > 0){
                     transform.position = groundPoints[targetPoint+1];
                     if(targetPoint > 0)
@@ -277,11 +322,9 @@ public class PlayerController : MonoBehaviour
         else{ // Go forward
             transform.rotation = RotateInDirection(direction);
             transform.position += (Vector3)(direction * speed * Time.deltaTime); 
-            // NOTE: We calculate the velocity here to ignore when the position is hard set later down in the if statement
-            // ClaculateGroundedVelocity(transform.position - (Vector3)direction * speed * Time.deltaTime, transform.position);
 
             if(targetPoint < groundPoints.Length-1 && transform.position.x > groundPoints[targetPoint].x){
-                SetTargetToNearstFrontPoint();
+                targetPoint = GetNearstFrontPoint(targetPoint);
                 if(targetPoint < groundPoints.Length){
                     transform.position = groundPoints[targetPoint-1];
                     if(targetPoint < groundPoints.Length-1)
@@ -289,11 +332,6 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-    }
-
-
-    void MoveInAir(){
-        rigidbody.velocity = new Vector3(CalculateSpeed(rigidbody.velocity.x, minSpeedAir, slowDownRateAir), rigidbody.velocity.y, rigidbody.velocity.z);
     }
 
     void UpdateGroundInAir(){
@@ -367,18 +405,18 @@ public class PlayerController : MonoBehaviour
     float GetAngleLimit(){
         float angleLimit;
         if (normalSlope)
-            angleLimit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded)) * maxAngleDifferenceNormalSlope / (maxSpeedGrounded - minSpeedGrounded);
+            angleLimit = (Mathf.Abs(velocityMagnitude - maxExtriorForcesMagnitude)) * maxAngleDifferenceNormalSlope / (maxExtriorForcesMagnitude - minSpeed);
         else
-            angleLimit = (Mathf.Abs(velocityMagnitude - maxSpeedGrounded)) * maxAngleDifferenceUpSlope / (maxSpeedGrounded - minSpeedGrounded);
+            angleLimit = (Mathf.Abs(velocityMagnitude - maxExtriorForcesMagnitude)) * maxAngleDifferenceUpSlope / (maxExtriorForcesMagnitude - minSpeed);
 
         return angleLimit;
     }
 
     void SetTargetsDifference(){
         if (normalSlope)
-            targetPointsDiff = (int)((velocityMagnitude - minSpeedGrounded) * (float)maxTargetDifferenceNormalSlope / (maxSpeedGrounded - minSpeedGrounded));
+            targetPointsDiff = (int)((velocityMagnitude - minSpeed) * (float)maxTargetDifferenceNormalSlope / (maxExtriorForcesMagnitude - minSpeed));
         else
-            targetPointsDiff = (int)((velocityMagnitude - minSpeedGrounded) * (float)maxTargetDifferenceUpSlope / (maxSpeedGrounded - minSpeedGrounded));
+            targetPointsDiff = (int)((velocityMagnitude - minSpeed) * (float)maxTargetDifferenceUpSlope / (maxExtriorForcesMagnitude - minSpeed));
     }
     #endregion
 
@@ -399,21 +437,20 @@ public class PlayerController : MonoBehaviour
 
     void Jump(){
         if(downSlope){
-            applyGravity = false;
-            rigidbody.velocity = new Vector3(rigidbody.velocity.x + downSlopeJumpForce, rigidbody.velocity.y, rigidbody.velocity.z);
-            
-            // rigidbody.AddForce(Vector3.right * downSlopeJumpForce, ForceMode.Impulse);
-            Debug.Log("$<color=magenta>JUMPED RIGHT</color>");
+            Debug.Log("Velocity" + velocity.x + " force " + downSlopeJumpForce);
+            velocity = new Vector2(velocity.x + downSlopeJumpForce, velocity.y);
+            Debug.Log("New velocity " + velocity);
             if(debugJumpSlope)
                 LogMessage($"Jump slope: <color=red>Down Slope</color>");
         }
         else if(upSlope){
-            rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y + upSlopeJumpForce, rigidbody.velocity.z);
+            velocity = new Vector2(velocity.x, velocity.y + upSlopeJumpForce);
+
             if(debugJumpSlope)
                 LogMessage($"Jump slope: <color=green>Up Slope</color>");
         }
         else{
-            rigidbody.velocity = new Vector3(rigidbody.velocity.x, rigidbody.velocity.y + jumpForce, rigidbody.velocity.z);
+            velocity = new Vector2(velocity.x, velocity.y + jumpForce);
             if(debugJumpSlope)
                 LogMessage($"Jump slope: <color=blue>Normal Slope</color>");
         }
@@ -432,7 +469,13 @@ public class PlayerController : MonoBehaviour
         applyGravity = true;
         distanceToGrounded = 0f;
 
-        rigidbody.velocity = new Vector3(velocity.x, velocity.y, rigidbody.velocity.z);
+        // float angle = Vector2.Angle(direction, Vector2.right);
+        // velocity = new Vector2(Mathf.Sign(direction.x) * Mathf.Abs(speed * Mathf.Cos(angle)), Mathf.Sign(direction.y) * Mathf.Abs(speed * Mathf.Sin(angle)));
+        // Debug.Log($"<color=cyan>leave ground velocity " + velocity + " angle " + angle + "</color>");
+
+        velocity = direction.normalized * speed;
+        Debug.Log($"<color=cyan>leave ground velocity " + velocity + "</color>");
+
 
         StartCoroutine(PositiveSwitch(_ =>isJustLeftGround = _));
         
@@ -443,14 +486,16 @@ public class PlayerController : MonoBehaviour
         leaveGroundCache = false;
     }
 
-    void SetTargetToNearstFrontPoint(){
-        while(targetPoint < groundPoints.Length-1 && groundPoints[targetPoint].x < transform.position.x)
-            targetPoint++;
+    int GetNearstFrontPoint(int target){
+        while(target < groundPoints.Length-1 && groundPoints[target].x < transform.position.x)
+            target++;
+        return target;
     }
 
-    void SetTargetToNearstBackPoint(){
-        while(targetPoint > 0 && groundPoints[targetPoint].x > transform.position.x)
-            targetPoint--;
+    int GetNearstBackPoint(int target){
+        while(target > 0 && groundPoints[target].x > transform.position.x)
+            target--;
+        return target;
     }
 
     void ClaculateGroundedVelocity(){
@@ -480,40 +525,19 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region SYSTEMS
-    bool GroundCheck(){
-        Path path = null;
-        
-        if(prevMainGround = null)
-            prevMainGround = mainGroundObject;
-        else if(prevMainGround != mainGroundObject)
-            path = mainGroundObject.GetComponent<PathCreator>().path;
-        
-        if(path == null)
-            return false;
-
-        for(int i=0; i < path.NumSegments; i++){
-            Vector2[] points = path.GetPointsInSegment(i);
-            float dist = HandleUtility.DistancePointBezier(transform.position, points[0], points[3], points[1], points[2]);
-            if(dist <= distanceToGrounded){
-                if(!isGrounded){
-                    // Stop the player in place to do the calculations
-                    applyGravity = false;
-                    rigidbody.velocity = Vector3.zero;
-                    // Set the ground target point
-                    targetPoint = Path.GetNearestPoint(transform.position, groundPoints) + 1;
-                    transform.position = groundPoints[targetPoint];
-                    // State bool
-                    StartCoroutine(PositiveSwitch(_ => isJustLanded = _));  
-                }
-                return true;
+    void GroundCheck(){
+        if(!isGrounded){
+            if(transform.position.y < groundTracker.position.y){
+                // Stop the player in place to do the calculations
+                applyGravity = false;
+                // Set the ground target point
+                targetPoint = Path.GetNearestPoint(transform.position, groundPoints) + 1;
+                transform.position = groundPoints[targetPoint];
+                // State bool
+                StartCoroutine(PositiveSwitch(_ => isJustLanded = _));  
+                isGrounded = true;
             }
         }
-
-        if(isGrounded){
-            StartCoroutine(PositiveSwitch(_ =>isJustLeftGround = _));
-        }
-
-        return false;
     }
 
     void UpdateGroundPoints(){
