@@ -162,7 +162,7 @@ public class TypeRacing : MonoBehaviour{
             else if(type == 1)
                 boost = shortWordBoost;
 
-            playerController.speed += boost;
+            playerController.boost += boost;
             boostAmount += (int)boost;
             boostText.text = $"+" + boostAmount.ToString() + " speed";
             ResetAll(type);
