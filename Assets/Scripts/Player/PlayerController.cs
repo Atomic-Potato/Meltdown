@@ -77,10 +77,9 @@ public class PlayerController : MonoBehaviour
     [Space]
     [Header("REQUIRED COMPONENTS")]
     [SerializeField] Rigidbody rigidbody;
-    [SerializeField] Transform groundBox;
-    [SerializeField] GameObject spriteObject;
-    [SerializeField] ProceduralGeneration proceduralGenerator; 
+    [SerializeField] UserInterfaceManager uiManager;
     //Ground generation
+    [SerializeField] ProceduralGeneration proceduralGenerator; 
     [SerializeField] GameObject mainGroundObject;
 
     [Space]
@@ -185,6 +184,10 @@ public class PlayerController : MonoBehaviour
         }
         DisplayNextPathPoint();
         DebugSlopeType();
+
+        // FALLING INTO A CHASM
+        if(transform.position.y < groundPoints[targetTracker].y - 5f)
+            uiManager.DisplayLooseScreen();
     }
 
     void ApplyDragAndFriction(){
