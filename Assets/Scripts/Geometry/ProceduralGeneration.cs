@@ -23,6 +23,17 @@ public class ProceduralGeneration : MonoBehaviour
     [SerializeField] GameObject rockObject;
 
     [Space]
+    [Header("TREES")]
+    [SerializeField] int treeCountPerSection = 8;
+    [SerializeField] GameObject[] trees;
+
+    [Space]
+    [Header("CLOUDS")]
+    [SerializeField] int cloudCountPerSection = 8;
+    [SerializeField] GameObject[] clouds;
+
+
+    [Space]
     [Header("REQUIRED COMPONENTS")]
     [SerializeField] GameObject groundConnector;
     [SerializeField] PlayerController playerController;
@@ -87,12 +98,14 @@ public class ProceduralGeneration : MonoBehaviour
         RenderPath(sectionPath, currentPath);
 
         //Spawing rocks
-        // if(Random.Range(0,100) >= 50)
+        Vector2[] pathPoints = sectionPath.CalculateEvenlySpacedPoints(playerController.groundSpacing);
         if(spawnRocks)
-            SpawnRock(sectionPath.CalculateEvenlySpacedPoints(playerController.groundSpacing));
+            SpawnRock(pathPoints);
         else
             rocks.Enqueue(null);
-            
+        SpawnTrees(pathPoints);
+        SpawnClouds(pathPoints);    
+
         return groundSections[sectionNum];
     }
 
@@ -226,7 +239,7 @@ public class ProceduralGeneration : MonoBehaviour
     }
     #endregion
 
-    #region ROCKS
+    #region ENVIROMENT
     void SpawnRock(Vector2[] points){
         int rockIndex = Random.Range(0, points.Length-1);
         Vector2 forward = points[rockIndex + 1] - points[rockIndex];
@@ -234,6 +247,22 @@ public class ProceduralGeneration : MonoBehaviour
         direction.Normalize();
         float rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         rocks.Enqueue(Instantiate(rockObject, new Vector3(points[rockIndex].x, points[rockIndex].y, rockObject.transform.position.z), Quaternion.Euler(0f, 0f, rotation - 90)));
+    }
+
+    void SpawnTrees(Vector2[] points){
+        for(int i=treeCountPerSection; i > 0; i--){
+            int treePositionIndex = Random.Range(0, points.Length-1);
+            int treeIndex = Random.Range(0, trees.Length);
+            Instantiate(trees[treeIndex], new Vector3(points[treePositionIndex].x, points[treePositionIndex].y + 0.5f, 10f), Quaternion.identity);
+        }
+    }
+
+    void SpawnClouds(Vector2[] points){
+        for(int i=cloudCountPerSection; i > 0; i--){
+            int cloudPositionIndex = Random.Range(0, points.Length-1);
+            int cloudIndex = Random.Range(0, trees.Length);
+            Instantiate(clouds[cloudIndex], new Vector3(points[cloudPositionIndex].x, points[cloudPositionIndex].y + 10f, 10f), Quaternion.identity);
+        }
     }
     #endregion
 }
