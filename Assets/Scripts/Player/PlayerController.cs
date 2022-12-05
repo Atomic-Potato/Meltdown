@@ -108,13 +108,13 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public bool isJustLeftGround;
 
     // Other hidden
+    [HideInInspector] public float boost;
     [HideInInspector] public Vector2[] groundPoints;
     Vector2[] groundPointsNext;
     [HideInInspector] public int targetPoint;
     #endregion
 
     #region PRIVATE VARIABLES
-    float boost;
     float angleWithGround;
 
     int targetPointsDiff; // How many points between the 2 targets
@@ -284,6 +284,11 @@ public class PlayerController : MonoBehaviour
             applyGravity = false;
             rigidbody.velocity = Vector2.zero;
             transform.position = groundPoints[targetPoint];
+        }
+
+        if(boost != 0){
+            speed += boost;
+            boost = 0;
         }
 
         direction = GetDirection(targetPoint, targetPoint+1);
