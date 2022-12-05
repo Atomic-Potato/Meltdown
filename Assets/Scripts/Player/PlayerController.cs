@@ -204,15 +204,8 @@ public class PlayerController : MonoBehaviour
 
     void UpdateGroundTracker(){
         if(!isGrounded){
-            if (targetPoint >= 0 && targetPoint < groundPoints.Length){
-                if (transform.position.x > groundPoints[targetPoint].x)
-                    targetTracker = GetNearstFrontPoint(targetPoint);
-                else
-                    targetTracker = GetNearstBackPoint(targetPoint);
-                // if(transform.position.y < groundPoints[targetPoint].y)
-                //     transform.position = new Vector3(transform.position.x, groundPoints[targetPoint].y ,transform.position.z);
+                targetTracker = transform.position.x > groundPoints[targetTracker].x ? GetNearstFrontPoint(targetTracker) : GetNearstBackPoint(targetTracker);
                 groundTracker.position = groundPoints[targetTracker];
-            }
         }
         else
             groundTracker.position = groundPoints[targetPoint];
@@ -526,8 +519,9 @@ public class PlayerController : MonoBehaviour
 
     #region SYSTEMS
     void GroundCheck(){
-        if(!isGrounded){
-            if(transform.position.y < groundTracker.position.y){
+        UpdateGroundTracker();
+        if(!isGrounded && transform.position.x > groundTracker.position.x - 0.5f){
+            if(transform.position.y > groundTracker.position.y - 1f && transform.position.y < groundTracker.position.y){
                 // Stop the player in place to do the calculations
                 applyGravity = false;
                 // Set the ground target point
