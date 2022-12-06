@@ -4,10 +4,15 @@ using UnityEngine;
 
 public class PlayerAnimationController : MonoBehaviour
 {
+    [SerializeField] string[] tricksNames;
+
     [SerializeField] Animator animator;
-    [SerializeField] PlayerController playerController;
+    [SerializeField] TypeRacing typeRacing;
     void Update(){
-        animator.SetBool("isJustJumped", playerController.isJustJumped);
-        animator.SetBool("isSliding", playerController.isGrounded);
+        if(typeRacing.isFinishedWord){
+            int trick = Random.Range(0, tricksNames.Length);
+            Debug.Log(tricksNames[trick]);
+            animator.SetTrigger(tricksNames[trick]);
+        }
     }
 }

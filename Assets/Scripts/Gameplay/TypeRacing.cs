@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
@@ -35,6 +37,8 @@ public class TypeRacing : MonoBehaviour{
     [Space]
     [Header("REQUIRED COMPONENETS")]
     [SerializeField] PlayerController playerController;
+
+    [HideInInspector] public bool isFinishedWord;
 
     int boostAmount = 0;
     int currentType = 0; // 0: pick a type | 1: short word | -1: long word
@@ -162,6 +166,8 @@ public class TypeRacing : MonoBehaviour{
             else if(type == 1)
                 boost = shortWordBoost;
 
+            StartCoroutine(PositiveSwitch(_ => isFinishedWord = _));
+
             playerController.boost += boost;
             boostAmount += (int)boost;
             boostText.text = $"+" + boostAmount.ToString() + " speed";
@@ -224,8 +230,14 @@ public class TypeRacing : MonoBehaviour{
     string GenerateWord(int Length){
         string word = "";
         for(int i=0; i < Length; i++){
-            word = word + (char)Random.Range(65, 90);
+            word = word + (char)UnityEngine.Random.Range(65, 90);
         }
         return word;
+    }
+
+    IEnumerator PositiveSwitch(Action<bool> key, WaitForSeconds time = null){
+        key(true);
+        yield return time;
+        key(false);
     }
 }
