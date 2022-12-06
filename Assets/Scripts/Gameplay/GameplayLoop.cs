@@ -18,6 +18,11 @@ public class GameplayLoop : MonoBehaviour
     [HideInInspector] public float timer = 20f;
     [HideInInspector] public int currentDistance = 0;
 
+    
+    [Space]
+    [SerializeField] AudioSource menuMusicSource;
+    [SerializeField] AudioSource gameMusicSource;
+
     void Awake() {
         Time.timeScale = 0f;    
     }
@@ -43,6 +48,10 @@ public class GameplayLoop : MonoBehaviour
         Time.timeScale = 1f;
         uiManager.startScreen.SetActive(false);
         uiManager.gameUI.SetActive(true);
+        if(menuMusicSource)
+            menuMusicSource.Pause();
+        if(gameMusicSource)
+            gameMusicSource.Play();
     }
 
     public void RestartGame(){

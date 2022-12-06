@@ -18,6 +18,7 @@ public class UserInterfaceManager : MonoBehaviour
     [SerializeField] GameObject looseScreen;
     [SerializeField] GameObject winScreen;
 
+
     void Update(){
         distanceText.text = gameplayLoop.currentDistance + "m";
         speedText.text = playerController.isGrounded ? (int)PlayerController.speed + "m/s" : (int)PlayerController.velocity.magnitude + "m/s";
