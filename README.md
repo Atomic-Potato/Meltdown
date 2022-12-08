@@ -1,4 +1,4 @@
-# Skiing Type Racer
+# MELTDOWN
  
 A skiing game inspiered by "Alto's Adventure" about sliding down a snow mountain and typing trick names to gain speed boosts.
 
